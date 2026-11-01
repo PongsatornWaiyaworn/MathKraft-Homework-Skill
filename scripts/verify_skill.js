@@ -32,7 +32,9 @@ const promptPath = path.join(ROOT, 'templates', 'CLAUDE_PROMPT.md');
 assert('head.tpl.html exists', fs.existsSync(headPath));
 assert('tail.tpl.html exists', fs.existsSync(tailPath));
 assert('templates/HW-template.js exists', fs.existsSync(tmplJsPath));
-assert('templates/standalone-worksheet.html exists', fs.existsSync(tmplHtmlPath));
+assert('templates/template.html exists', fs.existsSync(path.join(ROOT, 'templates', 'template.html')));
+assert('templates/HW-template.html exists', fs.existsSync(path.join(ROOT, 'templates', 'HW-template.html')));
+assert('templates/template-cdn.html exists', fs.existsSync(path.join(ROOT, 'templates', 'template-cdn.html')));
 assert('templates/CLAUDE_PROMPT.md exists', fs.existsSync(promptPath));
 
 // 2. KaTeX equation parsing in tail.tpl.html
@@ -83,12 +85,19 @@ try {
   assert(`HW-template.js executes cleanly (${e.message})`, false);
 }
 
-// 4. Standalone worksheet check
-const htmlContent = fs.readFileSync(tmplHtmlPath, 'utf8');
-assert('standalone-worksheet.html has student login fields', htmlContent.includes('f-name') && htmlContent.includes('f-cls') && htmlContent.includes('f-no'));
-assert('standalone-worksheet.html has embedded fonts and KaTeX', htmlContent.includes('Prompt') && htmlContent.includes('window.katex'));
-assert('standalone-worksheet.html has NO breadcrumb navigation', !htmlContent.includes('🏠 หน้าหลัก'));
-assert('standalone-worksheet.html has NO floating student bar', !htmlContent.includes('เปลี่ยนผู้ทำ'));
+// 4. HTML Template checks
+const tmplHtml = fs.readFileSync(path.join(ROOT, 'templates', 'template.html'), 'utf8');
+assert('template.html has student login fields', tmplHtml.includes('f-name') && tmplHtml.includes('f-cls') && tmplHtml.includes('f-no'));
+assert('template.html has embedded fonts and KaTeX', tmplHtml.includes('Prompt') && tmplHtml.includes('window.katex'));
+assert('template.html has NO breadcrumb navigation', !tmplHtml.includes('🏠 หน้าหลัก'));
+assert('template.html has NO floating student bar', !tmplHtml.includes('เปลี่ยนผู้ทำ'));
+assert('template.html has mathkraft-content script block', tmplHtml.includes('id="mathkraft-content"'));
+
+const cdnHtml = fs.readFileSync(path.join(ROOT, 'templates', 'template-cdn.html'), 'utf8');
+assert('template-cdn.html has CDN links for KaTeX and Prompt', cdnHtml.includes('fonts.googleapis.com') && cdnHtml.includes('jsdelivr.net/npm/katex'));
+assert('template-cdn.html has student login fields', cdnHtml.includes('f-name') && cdnHtml.includes('f-cls') && cdnHtml.includes('f-no'));
+assert('template-cdn.html has NO breadcrumb navigation', !cdnHtml.includes('🏠 หน้าหลัก'));
+assert('template-cdn.html has mathkraft-content script block', cdnHtml.includes('id="mathkraft-content"'));
 
 console.log('\n========================================');
 if (failed) {

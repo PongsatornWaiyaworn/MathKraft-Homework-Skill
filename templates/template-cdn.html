@@ -1,0 +1,2368 @@
+<!--
+=============================================================================
+  MathKraft Interactive Homework (Lightweight Template สำหรับ Claude & AI)
+  มาตรฐานโรงเรียนนวลนรดิศวิทยาคม รัชมังคลาภิเษก · ครูนิพนธ์ ไวยวรณ์
+=============================================================================
+  - ไฟล์นี้มีขนาดเบา (~130 KB) เหมาะสำหรับให้ Claude หรือ AI อ่านและเข้าใจโครงสร้างทั้งหมดได้ในพริบตา
+  - โหลดฟอนต์ Prompt และ KaTeX ผ่าน CDN
+  - หน้าตา UI กติกา ปุ่ม และระบบตรวจเหมือนแบบฝึกหัดคณิตเพิ่มเติมเป๊ะ 100%
+=============================================================================
+-->
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>HW-01 ชื่อบทเรียนแบบฝึกหัด · ค31202 ม.4 · MathKraft</title>
+
+<!-- 1. Google Fonts: Prompt -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<!-- 2. KaTeX Math Typesetting (CDN) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
+
+<!-- 3. MathKraft Retro-Neobrutalism Design System -->
+<style>
+:root{
+  --cream:#F4F1E8; --paper:#FFFDF7; --ink:#111A4C; --navy:#16205B; --navy2:#2B3A9B;
+  --red:#F4522D; --gold:#F5B335; --teal:#14A38B; --violet:#7B6CF0; --sky:#3C9DFF; --pink:#FF7AA2;
+  --red-s:#FFD9CF; --gold-s:#FFEBC2; --teal-s:#CDEFE7; --violet-s:#E1DEFF; --sky-s:#D3E8FF; --pink-s:#FFDDE8;
+  --accent:var(--red); --accent-s:var(--red-s);
+  --line:rgba(22,32,91,.16); --mute:#5B6490; --r:18px; --fs:1;
+}
+body.u2{--accent:var(--teal);--accent-s:var(--teal-s)}
+body.u3{--accent:var(--violet);--accent-s:var(--violet-s)}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--cream);color:var(--ink);
+  font-family:'Prompt','Leelawadee UI','Noto Sans Thai','Sarabun','Tahoma',sans-serif;
+  font-size:calc(16.5px * var(--fs));line-height:1.6;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3,h4{margin:0;line-height:1.25}
+.wrap{width:min(920px,94vw);margin:0 auto}
+.hide{display:none!important}
+.mute{color:var(--mute)}
+.center{text-align:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+noscript .nojs{padding:24px;text-align:center;font-weight:700;color:#8F2410}
+
+/* ---------- top bar ---------- */
+.top{display:none !important;visibility:hidden !important;height:0 !important;overflow:hidden !important}
+.top .wrap{display:flex;align-items:center;gap:10px;padding:8px 0}
+.top .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.9em;color:var(--navy);min-width:0}
+.top .brand img{height:30px;width:auto}
+.top .brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .sp{flex:1}
+.tbtn{border:2px solid var(--navy);background:var(--paper);border-radius:11px;min-width:38px;height:36px;padding:0 10px;font-weight:700;cursor:pointer;box-shadow:0 3px 0 var(--navy);font-size:.88em}
+.tbtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--navy)}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;background:var(--navy);color:#fff;border-radius:10px;padding:3px 10px;font-size:.88em;white-space:nowrap}
+
+/* ---------- hero ---------- */
+.hero{position:relative;overflow:hidden;border-bottom:2px solid var(--navy);background:var(--cream)}
+.hero .wrap{position:relative;padding:22px 0 20px}
+.hero-art{position:absolute;right:-60px;top:-50px;width:380px;height:260px;pointer-events:none;opacity:.9}
+.eyebrow{display:flex;align-items:center;gap:10px;font-size:.82em;font-weight:500;color:var(--mute)}
+.eyebrow img{height:34px;width:auto}
+.eyebrow .dash{width:26px;height:3px;background:var(--accent);border-radius:2px}
+.hero h1{font-family:'MKDisplay','Prompt',serif;font-weight:800;font-size:calc(38px * var(--fs));color:var(--navy);margin:10px 0 6px;letter-spacing:-.4px;max-width:720px;position:relative}
+.hero h1 .num{color:var(--accent);margin-right:12px;font-family:'Prompt',sans-serif;font-weight:700}
+.hero .sub{margin:0;max-width:640px;color:#2F3A78;position:relative}
+.metas{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;position:relative}
+.meta{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--navy);background:var(--paper);border-radius:999px;padding:2px 12px;font-size:.84em;font-weight:600}
+.meta b{color:var(--accent)}
+
+/* ---------- cards & buttons ---------- */
+main{padding:22px 0 40px}
+.card{background:var(--paper);border:2px solid var(--navy);border-radius:var(--r);box-shadow:5px 5px 0 var(--navy);padding:18px 20px;margin-bottom:22px;position:relative}
+.card.tint{background:var(--accent-s)}
+.card.flat{box-shadow:none}
+.card h2{font-size:1.25em;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card h3{font-size:1.02em;margin:12px 0 6px}
+.tag{white-space:nowrap;font-size:.62em;font-weight:700;background:var(--accent);color:#fff;border-radius:8px;padding:2px 10px;letter-spacing:.3px}
+.tag.k{background:var(--navy2)}
+.tag.p{background:var(--teal)}
+.btn{border:2px solid var(--navy);background:var(--paper);border-radius:12px;padding:8px 18px;font-weight:600;cursor:pointer;box-shadow:0 4px 0 var(--navy);transition:transform .08s;font-size:.95em;min-height:44px}
+.btn:hover{background:#fff}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--navy)}
+.btn.pri{background:var(--accent);color:#fff}
+.btn.navy{background:var(--navy);color:#fff}
+.btn.sm{padding:3px 12px;font-size:.85em;min-height:34px;box-shadow:0 3px 0 var(--navy)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+a.btn{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--ink)}
+a.btn.navy{color:#fff}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}
+.row.between{justify-content:space-between}
+
+/* ---------- intro form ---------- */
+.formgrid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+@media(max-width:620px){.formgrid{grid-template-columns:1fr 1fr}.formgrid .f-name{grid-column:1/-1}.hero h1{font-size:calc(28px * var(--fs))}.hero-art{opacity:.3}.card{padding:15px 14px}}
+.field label{display:block;font-weight:600;font-size:.88em;margin-bottom:4px}
+.field input,.field select{width:100%;border:2px solid var(--navy);border-radius:12px;padding:9px 12px;background:#fff;font-weight:600;min-height:44px}
+.field input:focus,.num-in:focus{outline:3px solid var(--gold)}
+.err{color:#8F2410;font-weight:600;font-size:.9em;margin-top:8px;min-height:1.3em}
+.rules{margin:0;padding-left:1.3em;font-size:.93em;color:#2B3570}
+.rules li{margin:3px 0}
+.lv-list{display:grid;gap:8px;margin-top:6px}
+.lv-item{display:flex;gap:10px;align-items:flex-start;font-size:.93em}
+.lv-item .n{flex:0 0 28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.85em;margin-top:2px}
+.saved{border:2px dashed var(--navy);background:var(--gold-s);border-radius:14px;padding:10px 14px;margin-bottom:16px;font-size:.92em}
+
+/* ---------- progress pills ---------- */
+.pills{background:rgba(244,241,232,.95);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.pills .wrap{display:flex;gap:8px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
+.pills .wrap::-webkit-scrollbar{display:none}
+.pill{flex:0 0 auto;display:flex;align-items:center;gap:8px;border:2px solid var(--navy);background:var(--paper);border-radius:999px;padding:3px 14px 3px 4px;font-weight:600;font-size:.84em;white-space:nowrap}
+.pill .n{width:26px;height:26px;border-radius:50%;background:var(--cream);border:2px solid var(--navy);display:grid;place-items:center;font-size:.85em;font-weight:700}
+.pill.on{background:var(--navy);color:#fff}
+.pill.on .n{background:var(--accent);border-color:var(--accent);color:#fff}
+.pill.done .n{background:var(--teal);border-color:var(--teal);color:#fff}
+.pill.lock{opacity:.5}
+
+/* ---------- level & question cards ---------- */
+.lv-head{margin-bottom:16px}
+.lv-head h2{font-size:1.45em;font-family:'MKDisplay','Prompt',serif;font-weight:800;color:var(--navy);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.lv-head p{margin:6px 0 0;color:#2B3570}
+.ask{display:flex;gap:12px;align-items:flex-start;background:var(--gold-s);border:2px dashed var(--navy);border-radius:16px;padding:10px 14px;margin:0 0 18px;font-size:.93em}
+.ask b{background:var(--navy);color:#fff;border-radius:8px;padding:0 9px;font-size:.82em;white-space:nowrap;margin-top:2px}
+.qcard{background:var(--paper);border:2px solid var(--navy);border-radius:var(--r);box-shadow:4px 4px 0 var(--navy);padding:16px 18px;margin-bottom:20px;position:relative}
+.qcard.done{border-color:var(--teal);box-shadow:4px 4px 0 var(--teal)}
+.qcard .qh{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.qno{background:var(--navy);color:#fff;border-radius:9px;padding:0 10px;font-weight:700;font-size:.85em}
+.qtype{font-size:.76em;font-weight:700;color:var(--accent);letter-spacing:.3px}
+.qstat{margin-left:auto;font-size:.8em;font-weight:700;color:var(--mute)}
+.qcard.done .qstat{color:var(--teal)}
+.qbody{font-size:1em}
+.qbody p{margin:.3em 0 .6em}
+.story{background:var(--sky-s);border-left:5px solid var(--sky);border-radius:0 12px 12px 0;padding:8px 14px;margin:0 0 12px;font-size:.95em}
+.subq{border-top:2px dashed var(--line);margin-top:14px;padding-top:12px}
+.subq:first-of-type{border-top:0;margin-top:0;padding-top:0}
+.subq .sl{font-size:.8em;font-weight:700;color:var(--accent);margin-bottom:2px}
+.opts{display:grid;gap:8px;margin:8px 0}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;border:2.5px solid var(--navy);background:#fff;border-radius:14px;padding:9px 14px;cursor:pointer;font-weight:500;min-height:46px;box-shadow:0 3px 0 var(--navy);width:100%}
+.opt:hover{background:var(--gold-s)}
+.opt .k{flex:0 0 26px;height:26px;border-radius:50%;border:2px solid var(--navy);display:grid;place-items:center;font-weight:700;font-size:.8em;background:var(--cream)}
+.opt.ok{background:var(--teal-s);border-color:var(--teal);box-shadow:0 3px 0 var(--teal)}
+.opt.ok .k{background:var(--teal);color:#fff;border-color:var(--teal)}
+.opt.no{background:var(--red-s);border-color:var(--red);box-shadow:0 3px 0 var(--red)}
+.opt.no .k{background:var(--red);color:#fff;border-color:var(--red)}
+.opt[disabled]{cursor:default}
+.fillrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0}
+.fillrow .flab{font-weight:600}
+.num-in{min-width:7em;width:11em;max-width:100%;border:2.5px solid var(--navy);border-radius:12px;padding:8px 12px;background:#fff;font-weight:600;font-size:1.05em;min-height:46px}
+.num-in.ok{background:var(--teal-s);border-color:var(--teal)}
+.num-in.no{background:var(--red-s);border-color:var(--red)}
+.num-in[readonly]{opacity:.9}
+.unit{font-weight:600;color:var(--mute)}
+.rev{font-weight:700;color:#06604F;background:var(--teal-s);border-radius:8px;padding:0 10px}
+.fb{border-radius:12px;padding:8px 14px;font-weight:600;display:flex;align-items:flex-start;gap:10px;background:rgba(22,32,91,.06);margin-top:10px}
+.fb:empty{display:none}
+.fb.ok{background:var(--teal-s);color:#06604F}
+.fb.no{background:var(--red-s);color:#8F2410}
+.fb.hint{background:var(--gold-s);color:#6A4A00}
+.fb .ic{font-size:1.15em;line-height:1.5}
+details.why{margin-top:10px;background:#fff;border:2px solid var(--navy);border-radius:14px;padding:8px 14px}
+details.why summary{cursor:pointer;font-weight:700;font-size:.92em;color:var(--navy)}
+details.why .wb{margin-top:6px;font-size:.95em}
+details.why .wb p{margin:.3em 0}
+
+/* ---------- chips & zones (drag / tap) ---------- */
+.chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:6px 14px;border:2.5px solid var(--navy);border-radius:14px;background:#fff;font-weight:500;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;box-shadow:0 4px 0 var(--navy);text-align:left;line-height:1.4;max-width:100%}
+.chip:active{cursor:grabbing}
+.chip .cb{display:block;min-width:0}
+.chip .cb b{font-weight:700}
+.chip.sel{outline:4px solid var(--gold);outline-offset:2px}
+.chip.drag-src{opacity:.28}
+.chip.locked{cursor:default;touch-action:auto}
+.chip.ok{background:var(--teal-s);border-color:var(--teal);box-shadow:0 4px 0 var(--teal)}
+.chip.no{background:var(--red-s);border-color:var(--red);box-shadow:0 4px 0 var(--red);animation:shake .35s}
+.chip.rev{background:var(--gold-s);border-color:var(--navy);color:inherit;padding:6px 14px;border-radius:14px;font-weight:500}
+.ghost{position:fixed;left:0;top:0;z-index:9999;pointer-events:none;opacity:.96;filter:drop-shadow(0 10px 8px rgba(17,26,76,.3));max-width:80vw}
+.zone{border:2.5px dashed rgba(22,32,91,.45);border-radius:16px;min-height:70px;padding:8px;background:rgba(255,255,255,.55);display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;transition:background .15s}
+.zone.over,.zone.tap-ready{background:var(--gold-s);border-color:var(--navy);border-style:solid}
+.zone .zt{width:100%;font-size:.84em;font-weight:700;color:var(--navy)}
+.pool{background:rgba(22,32,91,.05);border-style:solid;border-color:var(--line);margin:10px 0}
+.bins{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:10px 0}
+.pair-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,.8fr);gap:10px;align-items:center;margin:8px 0}
+@media(max-width:520px){.pair-row{grid-template-columns:1fr}}
+.slot{min-height:54px;border:2.5px dashed var(--navy);border-radius:14px;display:flex;align-items:center;justify-content:center;background:#fff;padding:4px}
+.slot.over,.slot.tap-ready{background:var(--gold-s);border-style:solid}
+.slot .ph{font-size:.82em;color:var(--mute)}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.pop{animation:pop .35s ease}
+
+/* ---------- tree builder ---------- */
+.tree{display:flex;align-items:center;gap:0;overflow-x:auto;padding:10px 4px 14px}
+.t-node{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:4px 12px;border:2.5px solid var(--navy);border-radius:12px;background:#fff;font-weight:600;font-size:.92em;white-space:nowrap}
+.t-root{background:var(--navy);color:#fff}
+.t-branches,.t-leaves{display:flex;flex-direction:column;gap:10px;margin-left:30px;position:relative}
+.t-leaves{margin-left:30px}
+.t-group,.t-leafwrap{position:relative;display:flex;align-items:center;padding-left:0}
+.t-group::before,.t-leafwrap::before{content:'';position:absolute;left:-30px;width:30px;top:50%;border-top:2.5px solid var(--navy)}
+.t-branches>.t-group::after,.t-leaves>.t-leafwrap::after{content:'';position:absolute;left:-30px;top:-5px;bottom:-5px;border-left:2.5px solid var(--navy)}
+.t-branches>.t-group:first-child::after,.t-leaves>.t-leafwrap:first-child::after{top:50%}
+.t-branches>.t-group:last-child::after,.t-leaves>.t-leafwrap:last-child::after{bottom:50%}
+.t-branches>.t-group:only-child::after,.t-leaves>.t-leafwrap:only-child::after{display:none}
+button.t-node{cursor:pointer;font-family:inherit}
+.t-node.ghost-n{border-style:dashed;opacity:.55;background:transparent}
+.t-node.ghost-n.live{opacity:1;background:#fff;animation:pulse 1.4s infinite}
+.t-node.ghost-n.dead{opacity:.22;pointer-events:none}
+.t-node.built{border-style:solid;opacity:1;background:var(--gold-s)}
+.t-node.leaf.built{background:var(--teal-s);border-color:var(--teal)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,179,53,.0)}50%{box-shadow:0 0 0 5px rgba(245,179,53,.55)}}
+.t-leafwrap.off::before,.t-leaves.off>.t-leafwrap::after{opacity:.2}
+.t-group.off::before{opacity:.2}
+.t-branches>.t-group.off::after{opacity:.2}
+.counter{display:inline-flex;align-items:baseline;gap:6px;font-weight:700;background:var(--navy);color:#fff;border-radius:14px;padding:3px 14px;font-size:.92em}
+.counter b{font-size:1.5em;color:var(--gold);line-height:1}
+.rulebox{background:var(--gold-s);border:2px dashed var(--navy);border-radius:12px;padding:6px 12px;font-size:.92em;font-weight:600;margin:6px 0 10px}
+
+/* ---------- order / find ---------- */
+.ord{display:grid;gap:8px;margin:8px 0}
+.ord-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center;border:2.5px solid var(--navy);border-radius:14px;padding:8px 10px;background:#fff}
+.ord-row.ok{border-color:var(--teal);background:var(--teal-s)}
+.ord-row.no{border-color:var(--red);background:var(--red-s)}
+.ord-ctl{display:flex;flex-direction:column;gap:4px}
+.ord-ctl button{border:2px solid var(--navy);background:var(--paper);border-radius:8px;width:36px;height:30px;font-weight:700;cursor:pointer;line-height:1}
+.ord-ctl button:active{background:var(--gold-s)}
+.ord-main{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ord-main select,.cause select{width:100%;border:2px solid var(--navy);border-radius:10px;padding:6px 8px;background:var(--paper);min-height:40px;font-size:.92em}
+.ord-n{font-weight:700;color:var(--accent);margin-right:6px}
+.ln{display:flex;gap:10px;align-items:flex-start;border:2.5px solid var(--navy);border-radius:12px;background:#fff;padding:8px 12px;width:100%;text-align:left;cursor:pointer;margin:6px 0;font-weight:500}
+.ln .no-{flex:0 0 auto;font-weight:700;color:var(--accent)}
+.ln.sel{background:var(--gold-s);outline:3px solid var(--gold)}
+.ln.ok{background:var(--teal-s);border-color:var(--teal)}
+.ln.no{background:var(--red-s);border-color:var(--red)}
+.ln[disabled]{cursor:default}
+
+/* ---------- lab / graph ---------- */
+.lab{background:#fff;border:2px solid var(--navy);border-radius:16px;padding:12px 14px;margin:10px 0}
+.sl-row{display:flex;align-items:center;gap:12px;font-weight:600;flex-wrap:wrap;margin:6px 0}
+.sl-row output{min-width:3em;text-align:center;background:var(--navy);color:#fff;border-radius:8px;padding:0 8px;font-weight:700}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:140px;height:10px;background:var(--cream);border:2px solid var(--navy);border-radius:999px;outline:none;touch-action:pan-y}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--accent);border:3px solid var(--navy);cursor:grab}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--accent);border:3px solid var(--navy);cursor:grab}
+.plot{width:100%;height:auto;background:#fff;border:2px solid var(--navy);border-radius:14px;touch-action:none;display:block}
+.plot text{font-family:'Prompt','Leelawadee UI',Tahoma,sans-serif;font-size:11px;fill:var(--navy)}
+table.t{border-collapse:separate;border-spacing:0;border:2px solid var(--navy);border-radius:12px;overflow:hidden;background:#fff;font-size:.93em;margin:8px 0}
+table.t th,table.t td{padding:5px 10px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:center}
+table.t th{background:var(--navy);color:#fff;font-weight:600}
+table.t tr:last-child td{border-bottom:0}table.t td:last-child,table.t th:last-child{border-right:0}
+.vault{display:flex;align-items:center;gap:12px;border:2.5px solid var(--navy);border-radius:16px;padding:10px 14px;background:var(--gold-s);margin:12px 0;font-weight:600}
+.vault .lk{font-size:1.8em}
+.vault.open{background:var(--teal-s)}
+.vault code{font-family:inherit;font-weight:800;letter-spacing:2px;background:var(--navy);color:var(--gold);padding:1px 10px;border-radius:8px}
+
+/* ---------- navigation ---------- */
+.nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:6px 0 10px;align-items:center}
+.nav .hint{font-size:.88em;color:var(--mute);font-weight:600}
+
+/* ---------- summary ---------- */
+.sum-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center}
+@media(max-width:560px){.sum-head{grid-template-columns:1fr}}
+.stu{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:1.02em}
+.stu b{color:var(--mute);font-weight:600}
+.stu .v{font-weight:700}
+.ring{width:128px;height:128px;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .tx{position:absolute;inset:0;display:grid;place-items:center;text-align:center;line-height:1.1}
+.ring .tx b{font-size:1.9em;font-family:'MKDisplay','Prompt',serif;color:var(--navy)}
+.ring .tx span{font-size:.75em;color:var(--mute);font-weight:600}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:14px 0}
+.kp .c{border:2px solid var(--navy);border-radius:14px;padding:8px 10px;text-align:center;background:#fff}
+.kp .c small{display:block;color:var(--mute);font-weight:600}
+.kp .c b{font-size:1.5em;font-family:'MKDisplay','Prompt',serif;color:var(--navy)}
+.kp .c b i{font-style:normal;font-size:.6em;color:var(--mute);font-family:'Prompt',sans-serif;font-weight:500}
+.lvtab{width:100%;border-collapse:collapse;font-size:.93em}
+.lvtab th,.lvtab td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.lvtab th{font-size:.8em;color:var(--mute);font-weight:600}
+.lvtab td.num{text-align:right;white-space:nowrap;font-weight:700}
+.barx{height:12px;border:2px solid var(--navy);border-radius:999px;background:#fff;overflow:hidden;min-width:70px}
+.barx i{display:block;height:100%;background:var(--accent)}
+.grade{display:inline-block;font-weight:800;border-radius:999px;padding:2px 14px;border:2px solid var(--navy);background:var(--gold-s)}
+.grade.g4{background:var(--teal-s)}.grade.g3{background:var(--sky-s)}.grade.g2{background:var(--gold-s)}.grade.g1{background:var(--red-s)}
+.evl ul{margin:6px 0 10px;padding-left:1.2em}
+.evl li{margin:3px 0}
+.code{display:inline-block;font-weight:800;letter-spacing:2px;font-size:1.05em;border:2px dashed var(--navy);border-radius:10px;padding:2px 12px;background:#fff}
+.attempts{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}
+.att{border:2px solid var(--navy);border-radius:12px;padding:4px 12px;background:#fff;font-size:.9em;font-weight:600}
+.att.best{background:var(--teal-s);border-color:var(--teal)}
+.shot{font-size:.9em;font-weight:600;background:var(--sky-s);border:2px dashed var(--navy);border-radius:12px;padding:8px 14px;margin-top:12px}
+.footer{border-top:2px solid var(--navy);padding:14px 0 26px;font-size:.8em;color:var(--mute);text-align:center}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--navy);color:#fff;border-radius:12px;padding:8px 18px;font-weight:600;z-index:9998;box-shadow:0 6px 0 rgba(0,0,0,.2)}
+.katex{font-size:1.07em}
+.katex-display{margin:.4em 0;overflow-x:auto;overflow-y:hidden}
+@media (max-width:480px){.pill{padding:3px 10px 3px 3px;gap:5px;font-size:.8em}.pill .n{width:24px;height:24px}.pills .wrap{gap:6px}}
+@media print{.top,.pills,.nav,.noprint{display:none!important}body{background:#fff}.card{box-shadow:none}}
+
+/* ---------- sample-space lab ---------- */
+.ss-wrap{overflow-x:auto;padding:4px 2px 8px;margin:0 -2px}
+.ss-grid{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:6px;max-width:560px}
+.ss-grid.ss-2d{gap:4px;max-width:440px}
+.ss-cell{border:2.5px solid var(--navy);background:#fff;border-radius:11px;min-height:44px;padding:2px 4px;font-weight:600;cursor:pointer;font-size:.9em;box-shadow:0 3px 0 var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ss-cell.wide{min-height:46px;font-size:1em;letter-spacing:.06em}
+.ss-cell:hover{background:var(--gold-s)}
+.ss-cell.on{background:var(--gold);}
+.ss-cell.off{border:2px dashed var(--line);background:transparent;box-shadow:none;cursor:default;color:var(--line);display:grid;place-items:center;min-height:44px}
+.ss-cell.good{background:var(--teal-s);border-color:var(--teal);box-shadow:0 3px 0 var(--teal)}
+.ss-cell.bad{background:var(--red-s);border-color:var(--red);box-shadow:0 3px 0 var(--red)}
+.ss-cell.miss{border-style:dashed;border-color:var(--teal);background:#fff}
+.ss-cell[disabled]{cursor:default}
+.ss-h{display:grid;place-items:center;font-size:.78em;font-weight:700;color:var(--mute);text-align:center;line-height:1.2;min-height:30px}
+.ss-h.corner{font-size:.7em}
+@media(max-width:420px){.ss-cell{font-size:.8em;padding:2px 1px}.ss-grid.ss-2d{gap:3px}}
+
+.counter.ss-cnt{flex-wrap:wrap;gap:2px 8px;font-size:.85em;align-items:center;border-radius:12px}
+.ss-cnt b{font-size:1.1em}
+
+/* ---------- venn ---------- */
+.venn-wrap{max-width:420px;margin:6px 0}
+.venn{width:100%;height:auto;display:block}
+.venn .vr{fill:#fff;stroke:none;cursor:pointer;transition:fill .1s}
+.venn .vr:hover{fill:var(--gold-s)}
+.venn .vr.on{fill:var(--gold)}
+.venn .vr.good{fill:var(--teal-s)}
+.venn .vr.bad{fill:var(--red-s)}
+.venn .vo{stroke:var(--navy);stroke-width:2.5;pointer-events:none}
+.venn .vr:focus{outline:none}
+.venn .vr:focus-visible{stroke:var(--navy);stroke-width:3;stroke-dasharray:6 4}
+.venn text{font-family:'Prompt',sans-serif;fill:var(--navy);pointer-events:none}
+.venn .vl{font-size:20px;font-weight:700}
+.venn .vl.s{font-size:15px;fill:var(--mute)}
+.venn .vt{font-size:19px;font-weight:700}
+.vlog{margin-top:8px;font-size:.9em}
+.vl{padding:2px 0;color:var(--mute)}
+.vl.ok{color:#06604F}.vl.half{color:#6A4A00}.vl.no{color:#8F2410}
+
+/* ---------- simulation lab ---------- */
+.simtab td,.simtab th{padding:5px 8px}
+.simbar{position:relative;height:12px;background:var(--line);border-radius:6px;min-width:120px}
+.simbar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:6px;opacity:.85}
+.simbar b{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--navy);border-radius:2px;transform:translateX(-1px)}
+.simsub{margin-top:10px}
+
+/* ---------- coordinate graphs ---------- */
+.gx-wrap{max-width:420px;margin:6px 0;background:#fff;border:2px solid var(--navy);border-radius:12px;padding:4px;overflow:hidden}
+.gx-wrap.plot{cursor:crosshair}
+.gx{width:100%;height:auto;display:block}
+.gx text{font-family:'Prompt',sans-serif;fill:var(--navy);pointer-events:none}
+.gx .gx-g{stroke:rgba(22,32,91,.14);stroke-width:1}
+.gx .gx-m{stroke:rgba(22,32,91,.06);stroke-width:1}
+.gx .gx-a{stroke:var(--navy);stroke-width:2}
+.gx .gx-as{stroke:var(--mute);stroke-width:1.6;stroke-dasharray:6 5}
+.gx .gx-t{font-size:11px;font-weight:600}
+.gx .gx-t.b{font-size:12px;font-weight:700}
+.gx .gx-c{fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.gx .gx-c.c0{stroke:var(--accent)}
+.gx .gx-c.c1{stroke:var(--sky)}
+.gx .gx-c.c2{stroke:var(--teal)}
+.gx .gx-c.c3{stroke:#C25B00}
+.gx .gx-c.c4{stroke:var(--navy2)}
+.gx .gx-l{font-size:13px;font-weight:700;stroke:none}
+.gx .gx-l.c0{fill:var(--accent)}.gx .gx-l.c1{fill:var(--sky)}.gx .gx-l.c2{fill:var(--teal)}.gx .gx-l.c3{fill:#C25B00}.gx .gx-l.c4{fill:var(--navy2)}
+.gx .gx-p{fill:var(--gold);stroke:var(--navy);stroke-width:2}
+.gx .gx-p.hi{fill:var(--accent)}
+.gx .gx-p.mine{fill:var(--gold)}
+.gx .gx-p.ok{fill:var(--teal);stroke:var(--navy)}
+.gx .gx-p.no{fill:var(--red);stroke:var(--navy)}
+.gx .gx-p.rev{fill:none;stroke:var(--teal);stroke-width:3;stroke-dasharray:3 2}
+.gx-slwrap{display:flex;align-items:center;gap:10px;margin:6px 0}
+.gx-sl{flex:1;height:34px;accent-color:var(--accent)}
+.gx-read{font-weight:600;margin:4px 0}
+.gx-tab{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.gx-cell{border:2px solid var(--navy);border-radius:10px;padding:2px 10px;background:#fff;text-align:center;min-width:64px}
+.gx-cell small{display:block;color:var(--mute);font-weight:600;font-size:.76em}
+.gx-cell b{font-size:.98em}
+</style>
+</head>
+<body>
+<noscript><div class="nojs">ต้องเปิดด้วยเบราว์เซอร์ (Chrome / Safari / Edge) ที่เปิดใช้งาน JavaScript</div></noscript>
+<div id="app"><div class="center" style="padding:60px 16px"><b>กำลังโหลดแบบฝึก…</b></div></div>
+
+<script>window.MK_LOGO="data:image/webp;base64,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";window.REVIEW_BASE="";</script>
+<script>/* ===== MathKraft HW engine — core (pure, no DOM) ===== */
+(function (g) {
+  'use strict';
+  const MK = (g.MK = g.MK || {});
+
+  /* ---------- seeded RNG (mulberry32) ---------- */
+  MK.rng = function (seed) {
+    let s = seed >>> 0;
+    function next() {
+      s = (s + 0x6d2b79f5) >>> 0;
+      let t = s;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+    const R = {
+      next,
+      int: (a, b) => a + Math.floor(next() * (b - a + 1)),
+      pick: (a) => a[Math.floor(next() * a.length)],
+      shuffle(a) {
+        a = a.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(next() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      },
+      sample: (a, k) => R.shuffle(a).slice(0, k),
+      chance: (p) => next() < p,
+    };
+    return R;
+  };
+
+  /* ---------- number helpers ---------- */
+  MK.fmt = function (n) {
+    // 1234567 -> "1,234,567" ; decimals kept
+    if (typeof n !== 'number' || !isFinite(n)) return String(n);
+    const neg = n < 0, a = Math.abs(n);
+    const [i, d] = String(+a.toFixed(10)).split('.');
+    const s = i.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return (neg ? '−' : '') + s + (d ? '.' + d : '');
+  };
+  MK.fact = function (n) { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };
+  MK.nPr = (n, r) => { let x = 1; for (let i = 0; i < r; i++) x *= (n - i); return x; };
+  MK.nCr = (n, r) => { if (r < 0 || r > n) return 0; r = Math.min(r, n - r); let x = 1; for (let i = 1; i <= r; i++) x = (x * (n - r + i)) / i; return Math.round(x); };
+  MK.gcd = (a, b) => (b ? MK.gcd(b, a % b) : Math.abs(a));
+  MK.round = (x, d) => { const p = Math.pow(10, d || 0); return Math.round((x + Number.EPSILON) * p) / p; };
+  MK.sci = (n) => MK.fmt(n);
+
+  /* ---------- answer parser (no eval) ---------- */
+  const SUP = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9' };
+  function norm(s) {
+    s = String(s == null ? '' : s).trim();
+    s = s.replace(/[๐-๙]/g, (c) => String(c.charCodeAt(0) - 0x0e50));
+    s = s.replace(/^\s*[a-zA-Zก-ฮ]\w{0,2}\s*=\s*/, ''); // "x = 4" -> "4"
+    s = s.replace(/[−–—‒]/g, '-').replace(/[×·✕xX*]/g, '*').replace(/[÷:]/g, '/');
+    s = s.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, (m) => '^' + m.split('').map((c) => SUP[c]).join(''));
+    s = s.replace(/\s+/g, '').replace(/,(?=\d{3}(\D|$))/g, '');
+    return s;
+  }
+  MK.parseNum = function (str) {
+    const s = norm(str);
+    if (!s) return NaN;
+    let i = 0;
+    const peek = () => s[i];
+    function num() {
+      const m = /^\d+(\.\d+)?|^\.\d+/.exec(s.slice(i));
+      if (!m) throw 0;
+      i += m[0].length;
+      return parseFloat(m[0]);
+    }
+    function primary() {
+      let v;
+      if (peek() === '(') { i++; v = expr(); if (peek() !== ')') throw 0; i++; }
+      else v = num();
+      while (peek() === '!') { i++; if (v < 0 || v > 170 || v !== Math.floor(v)) throw 0; v = MK.fact(v); }
+      if (peek() === '%') { i++; v = v / 100; }
+      return v;
+    }
+    function unary() {
+      if (peek() === '-') { i++; return -unary(); }
+      if (peek() === '+') { i++; return unary(); }
+      return primary();
+    }
+    function power() {
+      const b = unary();
+      if (peek() === '^') { i++; return Math.pow(b, power()); }
+      return b;
+    }
+    function term() {
+      let v = power();
+      while (peek() === '*' || peek() === '/' || peek() === '(') {
+        if (peek() === '(') { v *= power(); continue; } // implicit multiplication 2(3)
+        const op = s[i++]; const r = power();
+        v = op === '*' ? v * r : v / r;
+      }
+      return v;
+    }
+    function expr() {
+      let v = term();
+      while (peek() === '+' || peek() === '-') { const op = s[i++]; const r = term(); v = op === '+' ? v + r : v - r; }
+      return v;
+    }
+    try { const v = expr(); return i === s.length && isFinite(v) ? v : NaN; } catch (e) { return NaN; }
+  };
+  MK.parseSet = function (str) {
+    const parts = String(str || '').replace(/หรือ|และ|;|\//g, (m) => (m === '/' ? '/' : ',')).split(',').map((x) => x.trim()).filter(Boolean);
+    return parts.map(MK.parseNum);
+  };
+  MK.numEq = (a, b, tol) => {
+    if (!isFinite(a) || !isFinite(b)) return false;
+    return Math.abs(a - b) <= (tol == null ? 1e-9 : tol) * Math.max(1, Math.abs(b));
+  };
+  // does the user's string match the field's expected answer?
+  MK.matchAnswer = function (input, f) {
+    if (f.set) {
+      // set answers use ',' / 'หรือ' as separators (thousand separators not supported here)
+      const raw = String(input || '').replace(/หรือ|และ|;/g, ',');
+      const got = raw.split(',').map((x) => x.trim()).filter(Boolean).map(MK.parseNum);
+      if (got.some((x) => !isFinite(x))) return false;
+      const want = f.set.slice();
+      if (got.length !== want.length) return false;
+      return want.every((w) => got.some((x) => MK.numEq(x, w, f.tol)));
+    }
+    if (f.text) { // exact text (case/space-insensitive)
+      const t = (x) => String(x).replace(/\s+/g, '').toLowerCase();
+      return [].concat(f.text).some((a) => t(a) === t(input));
+    }
+    const v = MK.parseNum(input);
+    if (!isFinite(v)) return false;
+    if (f.prob) { // probability: any equivalent fraction, or a decimal/percent correctly rounded to >= 2 decimals
+      const p = [].concat(f.answer)[0];
+      if (Math.abs(v - p) <= 1e-9) return true;
+      const t = String(input).trim().replace(/[๐-๙]/g, (c) => String(c.charCodeAt(0) - 0x0e50));
+      const m = /^(\d*)\.(\d+)\s*(%?)$/.exec(t) || /^(\d+)()\s*(%)$/.exec(t);
+      if (!m) return false;
+      const d = m[2].length + (m[3] ? 2 : 0);
+      return d >= 2 && Math.abs(v - p) <= 0.5 * Math.pow(10, -d) + 1e-12;
+    }
+    return [].concat(f.answer).some((a) => MK.numEq(v, a, f.tol));
+  };
+
+  /* ---------- question constructors (pure data) ---------- */
+  const Q = (MK.Q = {});
+  Q.choice = (o) => Object.assign({ type: 'choice', weight: 1, shuffle: true }, o);
+  Q.tf = (o) => Q.choice(Object.assign({ options: ['ถูก', 'ผิด'], answer: o.answer ? 0 : 1, shuffle: false }, o, { answer: o.answer ? 0 : 1 }));
+  Q.fill = (o) => Object.assign({ type: 'fill', weight: 1 }, o);
+  Q.sort = (o) => Object.assign({ type: 'sort', weight: 2 }, o); // bins:[{id,label}], items:[{html,bin}]
+  Q.pairs = (o) => Object.assign({ type: 'pairs', weight: 2 }, o); // left:[{html,key}], chips:[{html,key|null}]
+  Q.order = (o) => Object.assign({ type: 'order', weight: 2 }, o);
+  Q.find = (o) => Object.assign({ type: 'find', weight: 2 }, o);
+  Q.group = (o) => Object.assign({ type: 'group', weight: null }, o); // story, parts:[Q]
+  Q.tree = (o) => Object.assign({ type: 'tree', weight: 1 }, o);
+  Q.custom = (o) => Object.assign({ type: 'custom', weight: 1 }, o);
+
+  MK.weightOf = function (q) {
+    if (q.type === 'group') return q.parts.reduce((s, p) => s + MK.weightOf(p), 0);
+    return q.weight == null ? 1 : q.weight;
+  };
+
+  /* ---------- level helpers ---------- */
+  MK.levelBuild = function (level, seed) {
+    const R = MK.rng(seed);
+    const qs = level.build(R);
+    return qs;
+  };
+
+  MK.codeOf = function (str) {
+    // 53-bit-ish string hash -> 8 base36 chars in groups of 4 (cyrb53)
+    let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (let i = 0; i < str.length; i++) {
+      const ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    const n = 4294967296 * (2097151 & h2) + (h1 >>> 0);
+    const s = n.toString(36).toUpperCase().padStart(8, '0').slice(-8);
+    return s.slice(0, 4) + '-' + s.slice(4);
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>/* shared brute-force helpers (used for generating-time cross checks and tests) */
+(function (g) {
+  'use strict';
+  const MK = g.MK;
+  // fractions
+  MK.frac = (n, d) => { const g = MK.gcd(n, d) || 1; return [n / g, d / g]; };
+  MK.fr = (n, d) => { const [a, b] = MK.frac(n, d); return b === 1 ? String(a) : '\\dfrac{' + a + '}{' + b + '}'; };
+  MK.frs = (n, d) => { const [a, b] = MK.frac(n, d); return b === 1 ? String(a) : a + '/' + b; };
+  const bf = (MK.bf = {});
+  // visit all r-permutations (ordered, no repetition) of arr
+  bf.eachRPerm = function (arr, r, cb) {
+    const used = new Array(arr.length).fill(false), cur = [];
+    (function go() {
+      if (cur.length === r) { cb(cur.slice()); return; }
+      for (let i = 0; i < arr.length; i++) { if (used[i]) continue; used[i] = true; cur.push(arr[i]); go(); cur.pop(); used[i] = false; }
+    })();
+  };
+  bf.eachPerm = (arr, cb) => bf.eachRPerm(arr, arr.length, cb);
+  // visit all r-subsets
+  bf.eachComb = function (arr, r, cb) {
+    const cur = [];
+    (function go(s) {
+      if (cur.length === r) { cb(cur.slice()); return; }
+      for (let i = s; i < arr.length; i++) { cur.push(arr[i]); go(i + 1); cur.pop(); }
+    })(0);
+  };
+  // number of distinct arrangements of a multiset {letter: count} by DFS with memo
+  bf.distinct = function (counts) {
+    const keys = Object.keys(counts);
+    const memo = new Map();
+    function f(c) {
+      const k = c.join(',');
+      if (memo.has(k)) return memo.get(k);
+      const total = c.reduce((a, b) => a + b, 0);
+      if (total === 0) return 1;
+      let s = 0;
+      for (let i = 0; i < c.length; i++) if (c[i] > 0) { c[i]--; s += f(c); c[i]++; }
+      memo.set(k, s);
+      return s;
+    }
+    return f(keys.map((k) => counts[k]));
+  };
+  bf.letterCounts = (w) => { const o = {}; for (const ch of w) o[ch] = (o[ch] || 0) + 1; return o; };
+  bf.rangeCount = (lo, hi, pred) => { let c = 0; for (let n = lo; n <= hi; n++) if (pred(n)) c++; return c; };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>/* ===== MathKraft HW engine — reusable lab components (custom questions) ===== */
+(function (g) {
+  'use strict';
+  const MK = g.MK, Q = MK.Q;
+  const L = (MK.lab = {});
+
+  /* ---------- helpers shared by labs ---------- */
+  // two-try bookkeeping for a custom component: returns {fail(): bool done?, ok()}
+  function tries(api, c, o) {
+    let n = 0;
+    return {
+      get n() { return n; },
+      // call when the student presses check; ok = answer correct
+      submit(ok, wrongMsg) {
+        n++;
+        api.ctx.stats.tries++;
+        if (ok) {
+          const cr = n === 1 ? 1 : 0.5;
+          api.ctx.stats.items++; if (cr === 1) api.ctx.stats.first++;
+          return { done: true, credit: cr };
+        }
+        if (n >= 2) { api.ctx.stats.items++; return { done: true, credit: 0 }; }
+        api.ctx.stats.hints++;
+        return { done: false, credit: 0 };
+      },
+    };
+  }
+  L.tries = tries;
+
+  /* ---------- F6 : sample-space builder ----------
+     cfg = { title, cond, cells:[{id,label,off?,inE}], cols, rowHead?, colHead?, rows?, why, hint,
+             nS?, ename?, solveNote? }
+     The student taps every outcome that belongs to the event.                     */
+  L.sampleSpace = function (cfg) {
+    const live = cfg.cells.filter((x) => !x.off);
+    const nE = live.filter((x) => x.inE).length, nS = live.length;
+    return Q.custom({
+      q: cfg.title, answer: nE, nS, verify: cfg.verify,
+      mount(el, api, c) {
+        const { h, R, fbSet, whyBox, rich } = api;
+        const en = cfg.ename || 'E';
+        const sel = new Set();
+        const T = tries(api, c);
+        const grid = h('div', { class: 'ss-grid' + (cfg.rows ? ' ss-2d' : ''), style: '--cols:' + (cfg.rowHead ? cfg.cols + 1 : cfg.cols) });
+        const cellEl = {};
+        const fb = h('div', { class: 'fb' });
+        const cnt = h('span', { class: 'counter ss-cnt' });
+        const btn = h('button', { type: 'button', class: 'btn navy sm', text: 'ตรวจเหตุการณ์ ' + en });
+        const clearBtn = h('button', { type: 'button', class: 'btn sm', text: 'ล้างที่เลือก' });
+        function paint() {
+          cnt.innerHTML = '';
+          cnt.append(h('span', { text: 'เลือกแล้ว' }), h('b', { text: 'n(' + en + ') = ' + sel.size }), h('span', { text: '·' }), h('span', { text: 'ทั้งหมด' }), h('b', { text: 'n(S) = ' + nS }));
+          live.forEach((x) => cellEl[x.id].classList.toggle('on', sel.has(x.id)));
+        }
+        function toggle(id) { if (c.done) return; if (sel.has(id)) sel.delete(id); else sel.add(id); fbSet(fb, '', ''); paint(); }
+        if (cfg.rows) {
+          // 2-D grid with headers
+          grid.append(h('div', { class: 'ss-h corner', html: cfg.corner || '' }));
+          for (let j = 0; j < cfg.cols; j++) grid.append(h('div', { class: 'ss-h', html: cfg.colHead[j] }));
+          for (let i = 0; i < cfg.rows; i++) {
+            grid.append(h('div', { class: 'ss-h', html: cfg.rowHead[i] }));
+            for (let j = 0; j < cfg.cols; j++) {
+              const x = cfg.cells[i * cfg.cols + j];
+              if (x.off) { grid.append(h('div', { class: 'ss-cell off', 'aria-hidden': 'true', text: '–' })); continue; }
+              const b = h('button', { type: 'button', class: 'ss-cell', text: x.label, 'aria-pressed': 'false', 'aria-label': x.aria || x.label, onclick: () => toggle(x.id) });
+              cellEl[x.id] = b; grid.append(b);
+            }
+          }
+        } else {
+          cfg.cells.forEach((x) => {
+            const b = h('button', { type: 'button', class: 'ss-cell wide', text: x.label, 'aria-pressed': 'false', onclick: () => toggle(x.id) });
+            cellEl[x.id] = b; grid.append(b);
+          });
+        }
+        function mark(reveal) {
+          live.forEach((x) => {
+            const b = cellEl[x.id];
+            b.classList.remove('bad', 'miss', 'good');
+            if (!reveal) return;
+            const on = sel.has(x.id);
+            if (on && x.inE) b.classList.add('good');
+            else if (on && !x.inE) b.classList.add('bad');
+            else if (!on && x.inE) b.classList.add('miss');
+          });
+        }
+        function check() {
+          if (c.done) return;
+          if (!sel.size) { fbSet(fb, 'hint', 'แตะผลลัพธ์ที่เข้าเงื่อนไขอย่างน้อย 1 ตัวก่อนกดตรวจ'); return; }
+          const extra = live.filter((x) => sel.has(x.id) && !x.inE).length;
+          const miss = live.filter((x) => !sel.has(x.id) && x.inE).length;
+          const r = T.submit(!extra && !miss);
+          if (!r.done) {
+            fbSet(fb, 'hint', 'ยังไม่ถูก: เลือกเกินมา ' + extra + ' ตัว และยังขาดอีก ' + miss + ' ตัว · ' + (cfg.hint || 'อ่านเงื่อนไขอีกครั้ง แล้วไล่ตรวจทีละผลลัพธ์') + ' (แก้แล้วถูกได้ครึ่งคะแนน)');
+            return;
+          }
+          btn.disabled = true; clearBtn.disabled = true;
+          mark(true);
+          const sum = 'n(' + en + ') = ' + nE + ' · n(S) = ' + nS + ' · P(' + en + ') = ' + MK.frs(nE, nS);
+          fbSet(fb, r.credit ? 'ok' : 'no', r.credit === 1 ? 'ถูกต้องครบถ้วน! ' + sum : r.credit ? 'ถูกต้องแล้ว (ครั้งที่ 2) ' + sum : 'ครบ 2 ครั้งแล้ว ดูเฉลย: สีเขียว = ถูก, สีแดง = เลือกเกิน, ขอบประ = ที่ขาดไป · ' + sum);
+          const w = whyBox(cfg.why, !r.credit || r.credit < 1);
+          if (w) el.appendChild(w);
+          api.finish(r.credit);
+        }
+        btn.addEventListener('click', check);
+        clearBtn.addEventListener('click', () => { if (c.done) return; sel.clear(); fbSet(fb, '', ''); paint(); });
+        el.append(R(cfg.title, 'div', 'qbody'),
+          h('div', { class: 'rulebox' }, h('b', { text: 'เหตุการณ์ ' + en + ' : ' }), R(cfg.cond, 'span')),
+          h('div', { class: 'mute', style: 'font-size:.86em;margin:2px 0 6px', html: cfg.how || 'แตะผลลัพธ์ทุกตัวที่ทำให้เหตุการณ์ ' + en + ' เกิดขึ้น (แตะซ้ำเพื่อยกเลิก)' }),
+          h('div', { class: 'ss-wrap' }, grid), h('div', { class: 'row', style: 'margin:8px 0' }, cnt), h('div', { class: 'row' }, btn, clearBtn), fb);
+        paint();
+        c.dbg = {
+          pick(right) { sel.clear(); live.forEach((x) => { if (right ? x.inE : !x.inE) sel.add(x.id); }); if (!right && !sel.size) sel.add(live[0].id); paint(); },
+          check,
+        };
+      },
+      solve(c, wf) {
+        if (wf) { c.dbg.pick(false); c.dbg.check(); }
+        if (wf === 'twice') { c.dbg.pick(false); c.dbg.check(); return; }
+        c.dbg.pick(true); c.dbg.check();
+      },
+    });
+  };
+
+  /* ---------- Venn diagram (2 sets) ---------- */
+  // regions: a = only A, ab = A∩B, b = only B, n = outside both
+  let vuid = 0;
+  L.vennSvg = function (o) {
+    o = o || {};
+    const id = 'vc' + (++vuid);
+    const cl = (r) => 'vr' + (o.on && o.on.has(r) ? ' on' : '') + (o.good && o.good.has(r) ? ' good' : '') + (o.bad && o.bad.has(r) ? ' bad' : '') + (o.miss && o.miss.has(r) ? ' miss' : '');
+    const rg = (r) => (o.interactive ? ' data-r="' + r + '" tabindex="0" role="button" aria-label="' + ({ a: 'เฉพาะ A', ab: 'A ตัด B', b: 'เฉพาะ B', n: 'นอกวงกลมทั้งสอง' })[r] + '"' : '');
+    const mk = (o.marks || {});
+    const t = (x, y, txt, c) => '<text x="' + x + '" y="' + y + '" class="' + (c || 'vt') + '" text-anchor="middle">' + txt + '</text>';
+    return '<svg viewBox="0 0 320 190" class="venn" xmlns="http://www.w3.org/2000/svg">'
+      + '<defs><clipPath id="' + id + '"><circle cx="118" cy="98" r="64"/></clipPath></defs>'
+      + '<rect' + rg('n') + ' class="' + cl('n') + '" x="4" y="4" width="312" height="182" rx="10"/>'
+      + '<circle' + rg('a') + ' class="' + cl('a') + '" cx="118" cy="98" r="64"/>'
+      + '<circle' + rg('b') + ' class="' + cl('b') + '" cx="202" cy="98" r="64"/>'
+      + '<circle' + rg('ab') + ' class="' + cl('ab') + '" cx="202" cy="98" r="64" clip-path="url(#' + id + ')"/>'
+      + '<rect class="vo" x="4" y="4" width="312" height="182" rx="10" fill="none"/><circle class="vo" cx="118" cy="98" r="64" fill="none"/><circle class="vo" cx="202" cy="98" r="64" fill="none"/>'
+      + t(78, 34, 'A', 'vl') + t(242, 34, 'B', 'vl') + t(16, 22, 'S', 'vl s') + t(80, 104, mk.a || '') + t(160, 104, mk.ab || '') + t(240, 104, mk.b || '') + t(36, 172, mk.n || '')
+      + '</svg>';
+  };
+  // shading lab: tasks = [{tex, set:[region ids], note}] done one after another (2 tries each)
+  L.vennShade = function (cfg) {
+    const tasks = cfg.tasks;
+    return Q.custom({
+      q: '', weight: cfg.weight || 2, answer: tasks.map((x) => x.set.slice().sort().join(',')).join('|'), verify: cfg.verify,
+      mount(el, api, c) {
+        const { h, R, fbSet } = api;
+        const credits = [];
+        const log = h('div', { class: 'vlog' });
+        const stage = h('div', {});
+        el.append(R(cfg.title || '', 'div', 'qbody'), stage, log);
+        let k = 0;
+        function run() {
+          const task = tasks[k];
+          const T = tries(api, c);
+          const sel = new Set();
+          const wrap = h('div', { class: 'venn-wrap' });
+          const fb = h('div', { class: 'fb' });
+          const btn = h('button', { type: 'button', class: 'btn navy sm', text: 'ตรวจ' });
+          const clr = h('button', { type: 'button', class: 'btn sm', text: 'ล้าง' });
+          function draw(extra) {
+            wrap.innerHTML = L.vennSvg(Object.assign({ interactive: !extra, on: sel }, extra || {}));
+            if (!extra) wrap.querySelectorAll('[data-r]').forEach((n) => {
+              const f = () => { const r = n.getAttribute('data-r'); if (sel.has(r)) sel.delete(r); else sel.add(r); fbSet(fb, '', ''); draw(); };
+              n.addEventListener('click', f);
+              n.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); f(); } });
+            });
+          }
+          function check() {
+            if (!sel.size) { fbSet(fb, 'hint', 'แตะบริเวณที่ต้องการแรเงาก่อน'); return; }
+            const want = new Set(task.set);
+            const ok = sel.size === want.size && task.set.every((x) => sel.has(x));
+            const r = T.submit(ok);
+            if (!r.done) { fbSet(fb, 'hint', 'ยังไม่ถูก — ' + (cfg.hint || 'ลองแยกดูว่าแต่ละบริเวณอยู่ใน A หรือไม่ และอยู่ใน B หรือไม่') + ' (แก้แล้วถูกได้ครึ่งคะแนนของภาพนี้)'); return; }
+            credits.push(r.credit);
+            btn.disabled = true; clr.disabled = true;
+            if (!r.credit) draw({ good: want, bad: new Set([...sel].filter((x) => !want.has(x))), on: new Set() });
+            fbSet(fb, r.credit ? 'ok' : 'no', (r.credit === 1 ? 'ถูกต้อง! ' : r.credit ? 'ถูกต้องแล้ว (ครั้งที่ 2) ' : 'ครบ 2 ครั้งแล้ว ดูเฉลย: สีเขียว = ที่ควรแรเงา · ') + task.note);
+            const nxt = h('button', { type: 'button', class: 'btn pri sm', text: k + 1 < tasks.length ? 'ภาพถัดไป →' : 'เสร็จสิ้น ✓' });
+            nxt.addEventListener('click', () => {
+              log.append(h('div', { class: 'vl' + (credits[k] === 1 ? ' ok' : credits[k] ? ' half' : ' no') }, (credits[k] === 1 ? '✓ ' : credits[k] ? '◐ ' : '✗ '), R(task.tex ? '\\(' + task.tex + '\\)' : '', 'span'), ' — ' + task.note));
+              k++;
+              if (k < tasks.length) { stage.innerHTML = ''; run(); }
+              else { stage.innerHTML = ''; api.finish(credits.reduce((a, b) => a + b, 0) / tasks.length); }
+            });
+            fb.parentNode.appendChild(nxt);
+          }
+          btn.addEventListener('click', check);
+          clr.addEventListener('click', () => { sel.clear(); fbSet(fb, '', ''); draw(); });
+          stage.append(R('<b>ภาพที่ ' + (k + 1) + ' / ' + tasks.length + '</b> · แตะแรเงาบริเวณของ \\(' + task.tex + '\\) (แตะซ้ำเพื่อยกเลิก)', 'div', 'rulebox'), wrap, h('div', { class: 'row', style: 'margin:6px 0' }, btn, clr), fb);
+          draw();
+          c.dbg = {
+            fill: (right) => { sel.clear(); ['a', 'ab', 'b', 'n'].filter((x) => (right ? task.set.includes(x) : !task.set.includes(x))).forEach((x) => sel.add(x)); draw(); },
+            check, next: () => { const b = stage.querySelector('.btn.pri'); if (b) b.click(); },
+          };
+        }
+        run();
+      },
+      solve(c, wf) {
+        for (let i = 0; i < tasks.length; i++) {
+          if (wf) { c.dbg.fill(false); c.dbg.check(); }
+          if (wf === 'twice') { c.dbg.fill(false); c.dbg.check(); } else { c.dbg.fill(true); c.dbg.check(); }
+          c.dbg.next();
+        }
+      },
+    });
+  };
+
+  /* ---------- F6 : simulation lab (law of large numbers) ----------
+     cfg = { cond, p:[num,den], trial:(rng)=>bool, desc, ename }                                  */
+  L.simLab = function (cfg) {
+    const [pn, pd] = MK.frac(cfg.p[0], cfg.p[1]);
+    const Pv = cfg.p[0] / cfg.p[1];
+    const sizes = [10, 100, 1000];
+    return Q.custom({
+      q: '', weight: 3, answer: 'sim',
+      verify: () => { const R = MK.rng(12345); let k = 0; const N = 40000; for (let i = 0; i < N; i++) if (cfg.trial(R)) k++; return Math.abs(k / N - Pv) < 0.015 ? 'sim' : 'bad:' + k / N; },
+      mount(el, api, c) {
+        const { h, R, fbSet, ctx, mountQ } = api;
+        const en = cfg.ename || 'E';
+        const runs = [];
+        let locked = false;
+        const tbody = h('tbody', {});
+        const table = h('table', { class: 'lvtab simtab' }, h('thead', {}, h('tr', {}, h('th', { text: 'ทดลองกี่ครั้ง' }), h('th', { text: 'เกิด ' + en + ' กี่ครั้ง' }), h('th', { text: 'สัดส่วน' }), h('th', { text: 'ใกล้ ' + MK.frs(pn, pd) + ' แค่ไหน' }))), tbody);
+        const msg = h('div', { class: 'mute', style: 'font-size:.88em;margin:6px 0' });
+        const btns = sizes.map((n) => h('button', { type: 'button', class: 'btn sm', text: '🎲 ทดลอง ' + MK.fmt(n) + ' ครั้ง', onclick: () => run(n) }));
+        const done = h('button', { type: 'button', class: 'btn pri sm hide', text: 'พอแล้ว ไปสรุปผลการทดลอง →' });
+        const sub = h('div', { class: 'simsub' });
+        function bar(prop) { return h('div', { class: 'simbar', title: 'เส้นขีด = ค่า P(' + en + ')' }, h('i', { style: 'width:' + (prop * 100).toFixed(1) + '%' }), h('b', { style: 'left:' + (Pv * 100).toFixed(1) + '%' })); }
+        function run(n) {
+          if (locked) return;
+          let k = 0; for (let i = 0; i < n; i++) if (cfg.trial(ctx.R)) k++;
+          runs.push({ n, k });
+          const prop = k / n;
+          tbody.append(h('tr', {}, h('td', { class: 'num', text: MK.fmt(n) }), h('td', { class: 'num', text: MK.fmt(k) }), h('td', { class: 'num', text: prop.toFixed(3) }), h('td', {}, bar(prop))));
+          while (tbody.children.length > 9) tbody.removeChild(tbody.firstChild);
+          const have = sizes.filter((x) => runs.some((r) => r.n === x));
+          msg.textContent = have.length < 3 ? 'ยังต้องทดลองขนาด ' + sizes.filter((x) => !have.includes(x)).map(MK.fmt).join(', ') + ' ครั้งให้ครบก่อน (ทดลองซ้ำกี่รอบก็ได้)' : 'ครบแล้ว! ทดลองซ้ำเพิ่มดูได้ เมื่อพร้อมกด “ไปสรุปผล”';
+          done.classList.toggle('hide', have.length < 3);
+        }
+        function lock() {
+          if (locked) return;
+          locked = true; btns.forEach((b) => (b.disabled = true)); done.disabled = true;
+          const last = sizes.map((n) => { const rr = runs.filter((x) => x.n === n).pop(); return { n, d: Math.abs(rr.k / rr.n - Pv), prop: rr.k / rr.n }; });
+          const mn = Math.min(...last.map((x) => x.d));
+          const winners = last.filter((x) => Math.abs(x.d - mn) < 1e-12);
+          const opts1 = last.map((x) => 'ทดลอง ' + MK.fmt(x.n) + ' ครั้ง (สัดส่วน ' + x.prop.toFixed(3) + ')').concat(['มีมากกว่าหนึ่งรอบที่ห่างจาก P(' + en + ') เท่ากัน']);
+          const q1 = Q.choice({ q: r2('จากการทดลอง<b>รอบล่าสุดของแต่ละขนาด</b>ในตารางของคุณ รอบใดที่สัดส่วนที่ได้ <b>ใกล้ \\(P(' + en + ')=' + MK.fr(pn, pd) + '\\)</b> มากที่สุด'), options: opts1, shuffle: false, answer: winners.length > 1 ? 3 : last.indexOf(winners[0]),
+            why: 'ความห่างจาก P(' + en + ') ของรอบล่าสุด: ' + last.map((x) => MK.fmt(x.n) + ' ครั้ง → ' + x.d.toFixed(4)).join(' · ') + ' (เลือกรอบที่ค่านี้น้อยที่สุด) การทดลองเป็นการสุ่ม ผลแต่ละรอบจึงไม่เหมือนกันและบางครั้งรอบน้อยครั้งอาจบังเอิญใกล้กว่า' });
+          const q2 = Q.choice({ q: r2('เมื่อทำการทดลองซ้ำเป็นจำนวนครั้ง<b>มากขึ้น ๆ</b> สัดส่วนที่ได้จากการทดลองมีแนวโน้มอย่างไรกับ \\(P(' + en + ')\\)'),
+            options: ['เข้าใกล้ \\(P(' + en + ')\\) มากขึ้น แต่ไม่จำเป็นต้องเท่ากับ \\(P(' + en + ')\\) พอดี', 'เท่ากับ \\(P(' + en + ')\\) พอดีเสมอ', 'ห่างจาก \\(P(' + en + ')\\) มากขึ้นเรื่อย ๆ', 'ไม่มีความเกี่ยวข้องกับ \\(P(' + en + ')\\)'], answer: 0,
+            why: 'เมื่อทดลองซ้ำมาก ๆ สัดส่วนที่ได้จากการทดลองมีแนวโน้มเข้าใกล้ความน่าจะเป็นตามทฤษฎี แต่ไม่ได้รับประกันว่าจะเท่ากันพอดี' });
+          const q3 = Q.choice({ q: r2('นักเรียนคนหนึ่งกล่าวว่า “เมื่อ \\(P(' + en + ')=' + MK.fr(pn, pd) + '\\) แปลว่าถ้าทดลอง ' + pd + ' ครั้ง ต้องเกิด ' + en + ' พอดี ' + pn + ' ครั้งเสมอ” ข้อใดถูกต้อง'),
+            options: ['ไม่จริงเสมอไป \\(P(' + en + ')\\) บอกแนวโน้มเมื่อทำซ้ำมาก ๆ ไม่ได้รับประกันผลของการทดลองชุดสั้น ๆ', 'จริงเสมอ เพราะความน่าจะเป็นกำหนดผลไว้แล้ว', 'จริงเฉพาะเมื่อทดลองด้วยอุปกรณ์ที่ยุติธรรม', 'จริง ถ้าทดลองครบ ' + pd + ' ครั้งติดต่อกันโดยไม่หยุดพัก'], answer: 0,
+            why: 'ผลของการทดลองแต่ละชุดเป็นการสุ่ม (ดูตารางของคุณ สัดส่วนจากรอบต่าง ๆ ไม่เท่ากัน) ความน่าจะเป็นบอกว่า “คาดว่าจะเกินประมาณเท่าไร” ในระยะยาว ไม่ใช่ผลที่แน่นอน' });
+          const qs = [q1, q2, q3], cs = [], credits = [];
+          function next(i) {
+            const sc = mountQ(qs[i], ctx);
+            cs.push(sc);
+            const wrap = h('div', { class: 'subq' }, h('div', { class: 'sl', text: 'สรุปผล ' + (i + 1) + ' / 3' }), sc.el);
+            sub.appendChild(wrap);
+            sc.onDone = () => { credits.push(sc.credit); if (i + 1 < qs.length) next(i + 1); else api.finish(credits.reduce((a, b) => a + b, 0) / qs.length); };
+          }
+          next(0);
+          c.sub = cs;
+        }
+        done.addEventListener('click', lock);
+        el.append(R(cfg.desc, 'div', 'qbody'), h('div', { class: 'rulebox' }, h('b', { text: 'เหตุการณ์ ' + en + ' : ' }), R(cfg.cond + ' · ความน่าจะเป็นตามทฤษฎี \\(P(' + en + ')=' + MK.fr(pn, pd) + '\\) (ขีดสีน้ำเงินในแถบ)', 'span')),
+          h('div', { class: 'row', style: 'margin:6px 0' }, btns), table, msg, h('div', { class: 'row' }, done), sub);
+        msg.textContent = 'กดปุ่มทดลองทั้ง 3 ขนาดอย่างน้อยขนาดละ 1 รอบ (ทดลองซ้ำเพิ่มได้) แล้วสังเกตสัดส่วนที่ได้';
+        c.dbg = {
+          runAll() { sizes.forEach((n) => run(n)); },
+          lock,
+          answerCurrent(wrong) {
+            const sc = c.sub[c.sub.length - 1];
+            if (!sc || sc.done) return false;
+            const pos = wrong ? sc.order.findIndex((o) => o !== sc.q.answer) : sc.order.indexOf(sc.q.answer);
+            sc.el.querySelectorAll('.opt')[pos].click();
+            return true;
+          },
+        };
+      },
+      solve(c, wf) {
+        c.dbg.runAll(); c.dbg.lock();
+        for (let i = 0; i < 3; i++) c.dbg.answerCurrent(!!wf);
+      },
+    });
+  };
+  const r2 = (s) => s;
+
+  /* ---------- coordinate plane (static SVG string) ---------- */
+  // o: {xmin,xmax,ymin,ymax,w,h,xstep,ystep,minorY, curves:[{f,cls,dash,label,lx,dy}], pts:[{x,y,cls,label,dx,dy}], vlines:[x], hlines:[y], diag, fmtY}
+  L.graph = function (o) {
+    const W = o.w || 320, H = o.h || 260, ml = 36, mr = 12, mt = 12, mb = 26;
+    const X = (x) => ml + ((x - o.xmin) / (o.xmax - o.xmin)) * (W - ml - mr);
+    const Y = (y) => mt + ((o.ymax - y) / (o.ymax - o.ymin)) * (H - mt - mb);
+    const f1 = (v) => (+v.toFixed(2)).toString().replace('-', '−');
+    let g = '';
+    const xs = o.xstep || 1, ys = o.ystep || 1;
+    for (let x = Math.ceil(o.xmin / xs) * xs; x <= o.xmax + 1e-9; x += xs) g += '<line class="gx-g" x1="' + X(x) + '" x2="' + X(x) + '" y1="' + Y(o.ymin) + '" y2="' + Y(o.ymax) + '"/>';
+    for (let y = Math.ceil(o.ymin / ys) * ys; y <= o.ymax + 1e-9; y += ys) g += '<line class="gx-g" y1="' + Y(y) + '" y2="' + Y(y) + '" x1="' + X(o.xmin) + '" x2="' + X(o.xmax) + '"/>';
+    if (o.minorY) for (let y = Math.ceil(o.ymin / o.minorY) * o.minorY; y <= o.ymax + 1e-9; y += o.minorY) g += '<line class="gx-m" y1="' + Y(y) + '" y2="' + Y(y) + '" x1="' + X(o.xmin) + '" x2="' + X(o.xmax) + '"/>';
+    // axes
+    if (o.xmin <= 0 && o.xmax >= 0) g += '<line class="gx-a" x1="' + X(0) + '" x2="' + X(0) + '" y1="' + Y(o.ymin) + '" y2="' + Y(o.ymax) + '"/>';
+    if (o.ymin <= 0 && o.ymax >= 0) g += '<line class="gx-a" y1="' + Y(0) + '" y2="' + Y(0) + '" x1="' + X(o.xmin) + '" x2="' + X(o.xmax) + '"/>';
+    // tick labels
+    const ax = o.ymin <= 0 && o.ymax >= 0 ? Y(0) : Y(o.ymin), ay = o.xmin <= 0 && o.xmax >= 0 ? X(0) : X(o.xmin);
+    for (let x = Math.ceil(o.xmin / xs) * xs; x <= o.xmax + 1e-9; x += xs) if (Math.abs(x) > 1e-9) g += '<text class="gx-t" x="' + X(x) + '" y="' + (Math.min(ax, Y(o.ymin)) + 14) + '" text-anchor="middle">' + f1(x) + '</text>';
+    for (let y = Math.ceil(o.ymin / ys) * ys; y <= o.ymax + 1e-9; y += ys) if (Math.abs(y) > 1e-9) g += '<text class="gx-t" x="' + (ay - 5) + '" y="' + (Y(y) + 4) + '" text-anchor="end">' + (o.fmtY ? o.fmtY(y) : f1(y)) + '</text>';
+    g += '<text class="gx-t" x="' + (ay - 5) + '" y="' + (ax + 14) + '" text-anchor="end">0</text>';
+    (o.vlines || []).forEach((x) => (g += '<line class="gx-as" x1="' + X(x) + '" x2="' + X(x) + '" y1="' + Y(o.ymin) + '" y2="' + Y(o.ymax) + '"/>'));
+    (o.hlines || []).forEach((y) => (g += '<line class="gx-as" y1="' + Y(y) + '" y2="' + Y(y) + '" x1="' + X(o.xmin) + '" x2="' + X(o.xmax) + '"/>'));
+    if (o.diag) g += '<line class="gx-as" x1="' + X(Math.max(o.xmin, o.ymin)) + '" y1="' + Y(Math.max(o.xmin, o.ymin)) + '" x2="' + X(Math.min(o.xmax, o.ymax)) + '" y2="' + Y(Math.min(o.xmax, o.ymax)) + '"/>';
+    (o.curves || []).forEach((cv) => {
+      const N = 240; let d = '', pen = false;
+      for (let i = 0; i <= N; i++) {
+        const t = cv.xmin != null && cv.xmax != null ? cv.xmin + ((cv.xmax - cv.xmin) * i) / N : o.xmin + ((o.xmax - o.xmin) * i) / N;
+        let x = t, y;
+        if (cv.xy) { const p = cv.xy(t); x = p[0]; y = p[1]; } else y = cv.f(x);
+        if (!isFinite(x) || !isFinite(y) || y < o.ymin - 0.02 || y > o.ymax + 0.02 || x < o.xmin - 0.02 || x > o.xmax + 0.02) { pen = false; continue; }
+        d += (pen ? 'L' : 'M') + X(x).toFixed(1) + ' ' + Y(y).toFixed(1); pen = true;
+      }
+      g += '<path class="gx-c ' + (cv.cls || 'c0') + '"' + (cv.dash ? ' stroke-dasharray="7 5"' : '') + ' d="' + d + '"/>';
+      if (cv.label) { const lx = cv.lx != null ? cv.lx : o.xmax - 0.4; g += '<text class="gx-l ' + (cv.cls || 'c0') + '" x="' + (X(lx) + (cv.dx || 0)) + '" y="' + (Y(cv.f(lx)) + (cv.dy != null ? cv.dy : -6)) + '" text-anchor="middle">' + cv.label + '</text>'; }
+    });
+    (o.pts || []).forEach((p) => { g += '<circle class="gx-p ' + (p.cls || '') + '" cx="' + X(p.x) + '" cy="' + Y(p.y) + '" r="' + (p.r || 5) + '"/>'; if (p.label) g += '<text class="gx-t b" x="' + (X(p.x) + (p.dx != null ? p.dx : 8)) + '" y="' + (Y(p.y) + (p.dy != null ? p.dy : -8)) + '">' + p.label + '</text>'; });
+    const svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="gx" xmlns="http://www.w3.org/2000/svg" role="img">' + (o.inner || '') + g + '</svg>';
+    return { svg, X, Y, W, H, ml, mr, mt, mb, inv: (px, py) => ({ x: o.xmin + ((px - ml) / (W - ml - mr)) * (o.xmax - o.xmin), y: o.ymax - ((py - mt) / (H - mt - mb)) * (o.ymax - o.ymin) }) };
+  };
+
+  // follow-up question chain used by labs
+  function chain(api, c, qs, host, label) {
+    const { h, ctx, mountQ } = api; const cs = [], credits = [];
+    (function next(i) {
+      const sc = mountQ(qs[i], ctx); cs.push(sc);
+      host.appendChild(h('div', { class: 'subq' }, h('div', { class: 'sl', text: (label || 'สรุปผล') + ' ' + (i + 1) + ' / ' + qs.length }), sc.el));
+      sc.onDone = () => { credits.push(sc.credit); if (i + 1 < qs.length) next(i + 1); else api.finish(credits.reduce((a, b) => a + b, 0) / qs.length); };
+    })(0);
+    c.sub = cs;
+  }
+  // debug helper: answer the currently open sub-question
+  function answerSub(c, wf) {
+    const sc = c.sub[c.sub.length - 1];
+    if (!sc || sc.done) return false;
+    const q = sc.q;
+    if (q.type === 'choice') {
+      const pos = wf ? sc.order.findIndex((o) => o !== q.answer) : sc.order.indexOf(q.answer);
+      sc.el.querySelectorAll('.opt')[pos].click(); return true;
+    }
+    if (q.type === 'fill') {
+      const fields = q.fields || [{ answer: q.answer, set: q.set, text: q.text }];
+      const val = (f) => (f.set ? f.set.join(', ') : f.text ? [].concat(f.text)[0] : String([].concat(f.answer)[0]));
+      const btn = [...sc.el.querySelectorAll('button')].find((b) => /ตรวจ/.test(b.textContent));
+      if (wf) { sc.inputs.forEach((i) => (i.value = '987654')); btn.click(); }
+      if (wf === 'twice') { sc.inputs.forEach((i) => { if (!i.readOnly) i.value = '987655'; }); btn.click(); return true; }
+      sc.inputs.forEach((i, k) => { if (!i.readOnly) i.value = val(fields[k]); }); btn.click(); return true;
+    }
+    throw new Error('answerSub: unsupported ' + q.type);
+  }
+  L.chain = chain; L.answerSub = answerSub;
+
+  /* ---------- F6 : exponential graph lab (slider for a) ---------- */
+  // cfg = { desc, qs:[Q], vals:[numbers excluding 1], labels?:[strings], fn:(a,x)=>y }
+  L.expLab = function (cfg) {
+    const vals = cfg.vals, lab = cfg.labels || vals.map((v) => String(v));
+    const fn = cfg.fn || ((a, x) => Math.pow(a, x));
+    return Q.custom({
+      q: '', weight: cfg.qs.length, answer: 'lab', verify: () => (vals.every((v) => v > 0 && v !== 1) && cfg.qs.length ? 'lab' : 'bad'),
+      mount(el, api, c) {
+        const { h, R } = api;
+        let idx = vals.findIndex((v) => v === 2); if (idx < 0) idx = 0;
+        const seen = new Set([idx]);
+        const wrap = h('div', { class: 'gx-wrap' });
+        const readout = h('div', { class: 'gx-read' });
+        const tab = h('div', { class: 'gx-tab' });
+        const msg = h('div', { class: 'mute', style: 'font-size:.88em;margin:6px 0' });
+        const sub = h('div', { class: 'simsub' });
+        const done = h('button', { type: 'button', class: 'btn pri sm hide', text: 'สำรวจพอแล้ว ไปสรุปผล →' });
+        const sl = h('input', { type: 'range', min: 0, max: vals.length - 1, step: 1, value: idx, class: 'gx-sl', 'aria-label': 'ค่า a' });
+        let locked = false;
+        function draw() {
+          const a = vals[idx];
+          const g = L.graph(Object.assign({ xmin: -3, xmax: 3, ymin: -0.5, ymax: 8.5, ystep: 1, curves: [{ f: (x) => fn(a, x), cls: 'c0' }], hlines: [], pts: [{ x: 0, y: fn(a, 0), cls: 'hi', label: '(0, 1)', dx: 8, dy: -9, r: 6 }] }, cfg.opts ? cfg.opts(a) : {}));
+          wrap.innerHTML = g.svg;
+          readout.innerHTML = rich2(cfg.readout ? cfg.readout(a, lab[idx]) : 'ค่า \\(a=' + lab[idx] + '\\) · กราฟของ \\(y=' + (lab[idx].includes('\\') ? '\\left(' + lab[idx] + '\\right)' : lab[idx]) + '^{x}\\)');
+          tab.innerHTML = '';
+          if (cfg.table) cfg.table(a).forEach(([s, b]) => tab.append(h('div', { class: 'gx-cell' }, h('small', { text: s }), h('b', { text: b }))));
+          else [-2, -1, 0, 1, 2].forEach((x) => { const y = fn(a, x); tab.append(h('div', { class: 'gx-cell' }, h('small', { text: 'x = ' + String(x).replace('-', '−') }), h('b', { text: String(+y.toFixed(3)) }))); });
+        }
+        function rich2(t) { return api.rich(t); }
+        function update() {
+          idx = +sl.value; seen.add(idx); draw();
+          const lo = [...seen].filter((i) => vals[i] < 1).length, hi = [...seen].filter((i) => vals[i] > 1).length;
+          const ok = lo >= 2 && hi >= 2;
+          msg.textContent = ok ? 'สำรวจครบแล้ว! ลองเลื่อนดูเพิ่มได้ เมื่อพร้อมกด “ไปสรุปผล”' : 'เลื่อนแถบเพื่อเปลี่ยนค่า a — ลองดูค่า a ที่ น้อยกว่า 1 อย่างน้อย 2 ค่า (' + Math.min(lo, 2) + '/2) และมากกว่า 1 อย่างน้อย 2 ค่า (' + Math.min(hi, 2) + '/2)';
+          done.classList.toggle('hide', !ok);
+        }
+        sl.addEventListener('input', () => { if (!locked) update(); });
+        sl.addEventListener('change', () => { if (!locked) update(); });
+        done.addEventListener('click', () => { if (locked) return; locked = true; sl.disabled = true; done.disabled = true; chain(api, c, cfg.qs, sub); });
+        el.append(R(cfg.desc, 'div', 'qbody'), h('div', { class: 'gx-slwrap' }, h('span', { class: 'mute', text: 'a น้อย' }), sl, h('span', { class: 'mute', text: 'a มาก' })), readout, wrap, tab, msg, h('div', { class: 'row' }, done), sub);
+        draw(); update();
+        c.dbg = {
+          sweep() { locked || [0, 1, vals.length - 2, vals.length - 1].forEach((i) => { sl.value = i; sl.dispatchEvent(new Event('input')); }); },
+          lock() { done.click(); },
+          answer: (wf) => answerSub(c, wf),
+        };
+      },
+      solve(c, wf) { c.dbg.sweep(); c.dbg.lock(); for (let i = 0; i < cfg.qs.length; i++) c.dbg.answer(wf); },
+    });
+  };
+
+  /* ---------- F9 : plot points from a value table ---------- */
+  // cfg = { a:[num,den], xs:[...], ymax, why }
+  L.plotPoints = function (cfg) {
+    const a = cfg.a[0] / cfg.a[1], xs = cfg.xs, ymax = cfg.ymax || 4.5;
+    const truth = xs.map((x) => Math.pow(a, x));
+    return Q.custom({
+      q: '', weight: 2, answer: truth.join(','), verify: () => xs.map((x) => Math.pow(cfg.a[0], x) / Math.pow(cfg.a[1], x)).join(','),
+      mount(el, api, c) {
+        const { h, R, fbSet, whyBox, rich } = api;
+        const T = tries(api, c);
+        const pl = L.graph({ xmin: -3, xmax: 3, ymin: -0.5, ymax, ystep: 1, minorY: 0.25, w: 320, h: 300 });
+        const mine = {}; // x -> y
+        const wrap = h('div', { class: 'gx-wrap plot', style: 'touch-action:manipulation' });
+        const fb = h('div', { class: 'fb' });
+        const btn = h('button', { type: 'button', class: 'btn navy sm', text: 'ตรวจจุดที่วาง' });
+        const clr = h('button', { type: 'button', class: 'btn sm', text: 'ล้างจุด' });
+        let result = null;
+        function frac(y) { const r = (n, d) => '\\dfrac{' + n + '}{' + d + '}'; const q = Math.round(y * 4); return q % 4 === 0 ? String(q / 4) : q % 2 === 0 ? r(q / 2, 2) : r(q, 4); }
+        const table = h('div', { class: 'gx-tab' });
+        xs.forEach((x, i) => table.append(h('div', { class: 'gx-cell' }, h('small', { text: 'x = ' + String(x).replace('-', '−') }), R('\\(' + frac(truth[i]) + '\\)', 'b'))));
+        function draw() {
+          const pts = xs.filter((x) => mine[x] != null).map((x) => ({ x, y: mine[x], cls: result ? (Math.abs(mine[x] - Math.pow(a, x)) < 1e-6 ? 'ok' : 'no') : 'mine', r: 6 }));
+          const extra = result && result.reveal ? xs.map((x) => ({ x, y: Math.pow(a, x), cls: 'rev', r: 6 })) : [];
+          const curve = result && result.curve ? [{ f: (x) => Math.pow(a, x), cls: 'c0' }] : [];
+          wrap.innerHTML = L.graph({ xmin: -3, xmax: 3, ymin: -0.5, ymax, ystep: 1, minorY: 0.25, w: 320, h: 300, pts: extra.concat(pts), curves: curve }).svg;
+        }
+        function put(px, py) {
+          if (c.done) return;
+          const svg = wrap.querySelector('svg'); const r = svg.getBoundingClientRect();
+          const sx = 320 / r.width, sy = 300 / r.height;
+          const d = pl.inv((px - r.left) * sx, (py - r.top) * sy);
+          const x = xs.reduce((b, v) => (Math.abs(v - d.x) < Math.abs(b - d.x) ? v : b), xs[0]);
+          if (Math.abs(x - d.x) > 0.5) return;
+          const y = Math.min(ymax, Math.max(0, Math.round(d.y * 4) / 4));
+          mine[x] = y; fbSet(fb, '', ''); draw();
+        }
+        wrap.addEventListener('click', (e) => put(e.clientX, e.clientY));
+        function check() {
+          if (c.done) return;
+          if (xs.some((x) => mine[x] == null)) { fbSet(fb, 'hint', 'วางจุดให้ครบทั้ง ' + xs.length + ' จุด (หนึ่งจุดต่อหนึ่งค่า x) ก่อนกดตรวจ'); return; }
+          const bad = xs.filter((x) => Math.abs(mine[x] - Math.pow(a, x)) > 1e-6);
+          const r = T.submit(!bad.length);
+          if (!r.done) { fbSet(fb, 'hint', 'ยังผิด ' + bad.length + ' จุด (ที่ x = ' + bad.map((x) => String(x).replace('-', '−')).join(', ') + ') — อ่านค่า y จากตารางแล้วหาตำแหน่งบนแกน y ให้ตรง · เส้นจางทุก 0.25 หน่วย (แก้แล้วถูกได้ครึ่งคะแนน)'); result = { mark: true }; draw(); result = null; return; }
+          btn.disabled = true; clr.disabled = true; result = { curve: !!r.credit, reveal: !r.credit }; draw();
+          fbSet(fb, r.credit ? 'ok' : 'no', r.credit === 1 ? 'ถูกต้องทุกจุด! เส้นโค้งที่ผ่านจุดเหล่านี้คือกราฟของฟังก์ชัน' : r.credit ? 'ถูกต้องแล้ว (ครั้งที่ 2) ได้ครึ่งคะแนน' : 'ครบ 2 ครั้งแล้ว ดูตำแหน่งที่ถูกต้อง (จุดขอบเขียว) ในกราฟ');
+          const w = whyBox(cfg.why, !r.credit || r.credit < 1); if (w) el.appendChild(w);
+          api.finish(r.credit);
+        }
+        btn.addEventListener('click', check);
+        clr.addEventListener('click', () => { if (c.done) return; xs.forEach((x) => delete mine[x]); fbSet(fb, '', ''); draw(); });
+        el.append(R(cfg.title, 'div', 'qbody'), table, h('div', { class: 'mute', style: 'font-size:.86em;margin:6px 0' }, 'แตะบนกราฟเพื่อวางจุดของแต่ละค่า x (แตะซ้ำที่คอลัมน์เดิมเพื่อย้ายจุด)'), wrap, h('div', { class: 'row', style: 'margin:6px 0' }, btn, clr), fb);
+        draw();
+        c.dbg = { fill(right) { xs.forEach((x, i) => { mine[x] = right ? Math.pow(a, x) : Math.min(ymax, Math.pow(a, x) + 1.5 > ymax ? Math.max(0, Math.pow(a, x) - 1.5) : Math.pow(a, x) + 1.5); }); draw(); }, check };
+      },
+      solve(c, wf) {
+        if (wf) { c.dbg.fill(false); c.dbg.check(); }
+        if (wf === 'twice') { c.dbg.fill(false); c.dbg.check(); } else { c.dbg.fill(true); c.dbg.check(); }
+      },
+    });
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+
+<!-- ==================================================================== -->
+<!-- 📝 [ส่วนเนื้อหาโจทย์: แก้ไขเฉพาะในแท็ก <script> ด้านล่างนี้] -->
+<!-- ==================================================================== -->
+<!-- ห้ามแก้ไขโค้ด CSS ด้านบน หรือ UI Controller ด้านล่าง เพื่อให้หน้าตาเหมือนเป๊ะ -->
+<!-- สมการคณิตศาสตร์: ใช้ $สูตร$ ในประโยค เช่น $a_n = 3\cdot 2^n - 6$ หรือ $$สูตร$$ แยกบรรทัด -->
+<!-- ==================================================================== -->
+<script id="mathkraft-content">
+/* =====================================================================
+ * MathKraft Homework Template (แม่แบบแบบฝึกหัดมาตรฐาน)
+ * =====================================================================
+ * วิธีใช้งาน:
+ * 1. คัดลอกไฟล์นี้ไปเป็นชื่อใหม่ เช่น HW-01_1.1_ชื่อเรื่อง.js
+ * 2. ปรับแต่งข้อมูลใน window.HW และฟังก์ชันสร้างโจทย์ตามบทเรียนที่ต้องการ
+ * 3. สมการคณิตศาสตร์:
+ *    - Inline math (ในประโยค):   เขียนด้วย $สูตร$ เช่น $a_n = 3\cdot 2^n - 6$ หรือ \(สูตร\)
+ *    - Display math (แยกบรรทัด): เขียนด้วย $$สูตร$$ เช่น $$S_n = \frac{n}{2}(a_1 + a_n)$$
+ * 4. นำไปให้ Claude หรือ AI เจนเนอเรต: นำไฟล์นี้แนบใน Prompt แล้วสั่งให้ AI แก้ไขเฉพาะส่วนโจทย์
+ * ===================================================================== */
+(function () {
+  'use strict';
+  const MK = window.MK, Q = MK.Q;
+  const r = String.raw; // เก็บเครื่องหมาย \ ของ LaTeX โดยไม่ต้องเบิ้ลสแลช
+
+  /* ===================================================================
+   * 1. ฟังก์ชันสร้างโจทย์แต่ละรูปแบบ (Question Type Generators)
+   *    ทุกฟังก์ชันรับ R (Random generator พร้อม seed ของผู้เรียนแต่ละคน)
+   * =================================================================== */
+
+  /**
+   * [รูปแบบที่ 1: Q.choice] ข้อเลือกตอบ (ปรนัย 4 ตัวเลือก)
+   * เหมาะสำหรับ: นิยาม, ความเข้าใจ, เลือกสมการหรือผลลัพธ์ที่ถูกต้อง
+   */
+  function qChoice(R) {
+    const a = R.int(2, 6);
+    const n = R.int(2, 5);
+    const ans = Math.pow(a, n);
+    const wrongs = [
+      Math.pow(a, n - 1),
+      Math.pow(a, n + 1),
+      a * n
+    ];
+    // answer คือ index ของตัวเลือกที่ถูกใน options ก่อนที่ระบบจะสลับลำดับอัตโนมัติ
+    return Q.choice({
+      q: `ค่าของ $${a}^{${n}}$ มีค่าเท่ากับข้อใด`,
+      options: [
+        `$${ans}$`,
+        `$${wrongs[0]}$`,
+        `$${wrongs[1]}$`,
+        `$${wrongs[2]}$`
+      ],
+      answer: 0, // ชี้ไปที่ตัวเลือกแรก (ans)
+      hint: `ให้นำ $${a}$ มาคูณกันจำนวน $${n}$ ตัว`,
+      why: `$${a}^{${n}} = ${Array(n).fill(a).join(' \\times ')} = ${ans}$`,
+      verify: () => 0 // selftest จะเทียบคำตอบที่เลือกกับค่าที่ verify ส่งคืน
+    });
+  }
+
+  /**
+   * [รูปแบบที่ 2: Q.fill] ข้อเติมคำตอบ (ตัวเลขหรือข้อความสั้น)
+   * เหมาะสำหรับ: การคำนวณตัวเลข, หาพจน์, หาผลลัพธ์สุดท้าย
+   */
+  function qFill(R) {
+    const a1 = R.int(2, 8);
+    const d = R.int(3, 7);
+    const n = R.int(4, 9);
+    const an = a1 + (n - 1) * d;
+
+    return Q.fill({
+      q: `กำหนดลำดับเลขคณิตที่มี $a_1 = ${a1}$ และผลต่างร่วม $d = ${d}$ จงหาค่าของพจน์ที่ <b>$a_{${n}}$</b>`,
+      fields: [
+        {
+          label: `$a_{${n}} =$`,
+          answer: an,          // คำตอบที่ถูกต้อง
+          unit: '',            // หน่วย (ถ้ามี เช่น 'บาท', 'คน', หรือเว้นว่าง)
+          tol: 0,              // ค่าความคลาดเคลื่อนที่ยอมรับได้ (สำหรับทศนิยม)
+          ph: 'พิมพ์ตัวเลข'    // placeholder ในช่องกรอก
+        }
+      ],
+      hint: `ใช้สูตรพจน์ทั่วไปของลำดับเลขคณิต $a_n = a_1 + (n-1)d$`,
+      why: `จากสูตร $a_n = a_1 + (n-1)d$<br>` +
+           `แทนค่า: $a_{${n}} = ${a1} + (${n}-1)(${d}) = ${a1} + (${n - 1})(${d}) = ${an}$`,
+      verify: () => an
+    });
+  }
+
+  /**
+   * [รูปแบบที่ 3: Q.sort] จัดกลุ่มการ์ด (Drag & Drop หรือแตะเลือกการ์ดลงกล่อง)
+   * เหมาะสำหรับ: การจำแนกประเภท (เช่น ลำดับจำกัด vs ลำดับอนันต์, เลขคณิต vs เรขาคณิต)
+   */
+  function qSort(R) {
+    const limN = R.int(10, 50);
+    return Q.sort({
+      q: `ลากการ์ดข้อความด้านล่างไปวางในกลุ่มที่ถูกต้อง`,
+      bins: [
+        { id: 'fin', label: 'ลำดับจำกัด' },
+        { id: 'inf', label: 'ลำดับอนันต์' }
+      ],
+      items: [
+        { html: `$1, 2, 3, \\dots, ${limN}$`, bin: 'fin' },
+        { html: `$a_n = 2n + 1$ เมื่อ $n \\in \\{1, 2, 3, 4\\}$`, bin: 'fin' },
+        { html: `$2, 4, 8, 16, \\dots$`, bin: 'inf' },
+        { html: `$a_n = 3n - 5$ เมื่อ $n$ เป็นจำนวนนับ`, bin: 'inf' }
+      ],
+      hint: `ลำดับที่มีจำนวนพจน์แน่นอนคือลำดับจำกัด ส่วนลำดับที่มีพจน์ต่อไปได้เรื่อย ๆ ไม่สิ้นสุดคือลำดับอนันต์`,
+      why: `ลำดับที่ระบุพจน์สุดท้ายหรือกำหนดขอบเขต $n$ แน่นอนเป็น <b>ลำดับจำกัด</b> ส่วนลำดับที่มีเครื่องหมาย $\\dots$ ต่อท้ายโดยไม่มีพจน์สุดท้ายเป็น <b>ลำดับอนันต์</b>`
+    });
+  }
+
+  /**
+   * [รูปแบบที่ 4: Q.pairs] จับคู่ 1 ต่อ 1 (Matching pairs)
+   * เหมาะสำหรับ: จับคู่สูตรกับนิยาม, จับคู่ฟังก์ชันกับกราฟ, จับคู่โจทย์กับคำตอบ
+   */
+  function qPairs(R) {
+    const a = R.int(2, 5);
+    const b = R.int(2, 5);
+    const sum = a + b;
+    const diff = a - b;
+    const prod = a * b;
+
+    return Q.pairs({
+      q: `จับคู่นิพจน์ทางซ้ายมือกับผลลัพธ์ที่ถูกต้องทางขวามือ`,
+      left: [
+        { key: 'p1', html: `$${a} + ${b}$` },
+        { key: 'p2', html: `$${a} - ${b}$` },
+        { key: 'p3', html: `$${a} \\times ${b}$` }
+      ],
+      chips: [
+        { key: 'p1', html: `$${sum}$` },
+        { key: 'p2', html: `$${diff}$` },
+        { key: 'p3', html: `$${prod}$` }
+      ],
+      hint: `คำนวณผลลัพธ์แต่ละคู่แล้วลากไปวางในช่องที่ตรงกัน`,
+      why: `$${a} + ${b} = ${sum}$, $${a} - ${b} = ${diff}$, $${a} \\times ${b} = ${prod}$`
+    });
+  }
+
+  /**
+   * [รูปแบบที่ 5: Q.order] เรียงลำดับขั้นตอนและเลือกเหตุผล (Proof / Step Ordering)
+   * เหมาะสำหรับ: การพิสูจน์ทางคณิตศาสตร์, แสดงวิธีทำตามลำดับขั้นตอน
+   */
+  function qOrder(R) {
+    const a = R.int(2, 5);
+    const b = R.int(3, 8);
+    const c = a * R.int(2, 6) + b;
+    const ans = (c - b) / a;
+
+    return Q.order({
+      q: `เรียงลำดับขั้นตอนการแก้สมการ $${a}x + ${b} = ${c}$ ให้ถูกต้อง พร้อมเลือกเหตุผลกำกับ`,
+      steps: [
+        { html: `จากสมการเริ่มต้น $${a}x + ${b} = ${c}$`, reason: 0 },
+        { html: `$${a}x = ${c} - ${b} = ${c - b}$`, reason: 1 },
+        { html: `$x = \\frac{${c - b}}{${a}} = ${ans}$`, reason: 2 }
+      ],
+      reasons: [
+        'กำหนดให้จากโจทย์',
+        'สมบัติการเท่ากันของการลบ (ย้ายค่าคงตัวไปลบ)',
+        'สมบัติการเท่ากันของการหาร (หารด้วยสัมประสิทธิ์หน้า x)'
+      ],
+      hint: `เริ่มจากโจทย์ ย้ายตัวเลขคงที่ไปลบออกก่อน แล้วจึงหารด้วยสัมประสิทธิ์หน้า $x$`,
+      why: `ขั้นตอนการแก้สมการเชิงเส้นตัวแปรเดียวต้องกำจัดพจน์คงตัวก่อน แล้วจึงหาค่าตัวแปร`
+    });
+  }
+
+  /**
+   * [รูปแบบที่ 6: Q.find] จับผิดวิธีทำ (Find the Error)
+   * เหมาะสำหรับ: ด่านพัฒนาทักษะกระบวนการ (P), วิเคราะห์ข้อผิดพลาดที่พบบ่อย
+   */
+  function qFind(R) {
+    return Q.find({
+      q: `พิจารณาการแสดงวิธีทำต่อไปนี้ แล้วระบุบรรทัดที่ผิด สาเหตุ และคำตอบที่ถูกต้อง`,
+      lines: [
+        `บรรทัดที่ 1: กำหนดสมการ $(x + 3)^2 = 25$`,
+        `บรรทัดที่ 2: ถอดรากที่สองทั้งสองข้าง จะได้ $x + 3 = 5$ เท่านั้น`,
+        `บรรทัดที่ 3: จะได้คำตอบ $x = 2$ เพียงค่าเดียว`
+      ],
+      wrong: 1, // บรรทัดที่ผิดคือ index 1 (บรรทัดที่ 2)
+      causes: [
+        'ลืมคิดกรณีคำตอบที่เป็นลบจากการถอดรากที่สอง (ต้องเป็น $\\pm 5$)',
+        'กระจายกำลังสองผิดพลาด',
+        'ย้ายข้างเครื่องหมายบวกลบผิด'
+      ],
+      cause: 0, // สาเหตุที่ผิดคือ index 0
+      fixLabel: 'คำตอบที่ถูกต้องของ $x$ มี 2 ค่าคือ $2$ และจำนวนใด',
+      fix: { answer: -8, tol: 0, ph: 'พิมพ์ตัวเลข' },
+      hint: `การถอดรากที่สองของ $25$ จะได้ทั้ง $+5$ และ $-5$`,
+      why: `เพราะ $(-5)^2 = 25$ ด้วย ดังนั้น $x + 3 = -5 \\implies x = -8$`
+    });
+  }
+
+  /**
+   * [รูปแบบที่ 7: Q.group] สถานการณ์ต่อเนื่องหลายข้อย่อย (Story / Multi-part)
+   * เหมาะสำหรับ: โจทย์ปัญหาประยุกต์, แบบจำลองทางคณิตศาสตร์ในชีวิตจริง
+   */
+  function qGroup(R) {
+    const salary = R.int(20, 45) * 1000;
+    const expense = salary * 0.5; // หักค่าใช้จ่าย 50%
+    const allowance = 60000;      // ค่าลดหย่อนส่วนตัว
+
+    return Q.group({
+      story: `<b>สถานการณ์จำลอง: การคำนวณภาษีเงินได้บุคคลธรรมดา</b><br>` +
+             `นายสมมติมีเงินได้พึงประเมินตลอดปีรวม <b>${salary.toLocaleString()} บาท</b>`,
+      parts: [
+        Q.fill({
+          label: 'ขั้นที่ 1 · ค่าใช้จ่าย 50% (ไม่เกิน 100,000 บาท)',
+          q: `หักค่าใช้จ่ายได้กี่บาท`,
+          answer: Math.min(expense, 100000),
+          unit: 'บาท',
+          why: `เงินได้ ${salary.toLocaleString()} × 50% = ${expense.toLocaleString()} บาท (ไม่เกินเพดาน 100,000 บาท)`,
+          weight: 1
+        }),
+        Q.fill({
+          label: 'ขั้นที่ 2 · เงินได้สุทธิ',
+          q: `หากหักค่าลดหย่อนส่วนตัว 60,000 บาท นายสมมติจะเหลือเงินได้สุทธิเท่าใด`,
+          answer: salary - Math.min(expense, 100000) - allowance,
+          unit: 'บาท',
+          why: `เงินได้สุทธิ = เงินได้พึงประเมิน - ค่าใช้จ่าย - ค่าลดหย่อน`,
+          weight: 1
+        })
+      ]
+    });
+  }
+
+  /* ===================================================================
+   * 2. ข้อมูลภาพรวมของแบบฝึกหัด (Homework Metadata & Level Progression)
+   * =================================================================== */
+  window.HW = {
+    // รหัสแบบฝึกหัด (ตรงตามโครงสร้างหลักสูตร)
+    id: 'HW-01',
+    unit: 1,
+    unitName: 'หน่วยที่ 1 ชื่อหน่วยการเรียนรู้',
+    title: 'ชื่อบทเรียนหรือหัวข้อของแบบฝึกหัด',
+    sub: 'คำอธิบายสั้น ๆ 1–2 ประโยค บอกจุดประสงค์การเรียนรู้หรือทักษะที่นักเรียนจะได้ฝึกฝน',
+
+    // สรุปจำนวนข้อ ระยะเวลา และสัดส่วนคะแนน K (ความรู้) / P (ทักษะกระบวนการ)
+    size: '8 ข้อ · 15 นาที',
+    K: 2,
+    P: 1,
+
+    // ลิงก์สื่อการสอน (ถ้ามี) ลิงก์ไปยังโฟลเดอร์สื่อการสอน
+    // reviewFile: '1.1_ชื่อสื่อการสอน.html',
+
+    // รายการด่านการเรียนรู้ (Level Progression)
+    levels: [
+      {
+        short: 'ด่าน 1',
+        title: 'ด่าน 1 · วอร์มอัปความเข้าใจ',
+        kind: 'K',
+        points: 1,
+        skill: 'ความรู้ความเข้าใจพื้นฐานเกี่ยวกับหัวข้อนี้',
+        review: 'หัวข้อ 1.1',
+        desc: 'ตอบข้อคำถามเพื่อทบทวนมโนทัศน์เบื้องต้น',
+        intro: 'เลือกตอบหรือเติมคำตอบให้ถูกต้อง ตอบถูกในครั้งแรกได้คะแนนเต็ม',
+        build(R) {
+          // [ใส่โจทย์ด่านที่ 1 ตรงนี้]
+          return [
+            qChoice(R),
+            qFill(R),
+            qSort(R)
+          ];
+        }
+      },
+      {
+        short: 'ด่าน 2',
+        title: 'ด่าน 2 · ตะลุยโจทย์และจับคู่',
+        kind: 'K',
+        points: 1,
+        skill: 'การคำนวณและเชื่อมโยงความสัมพันธ์ของสมการ',
+        review: 'หัวข้อ 1.2',
+        desc: 'ฝึกการจับคู่และเรียงลำดับขั้นตอน',
+        intro: 'คิดคำนวณอย่างรอบคอบ ลากวางให้ตรงช่อง',
+        build(R) {
+          // [ใส่โจทย์ด่านที่ 2 ตรงนี้]
+          return [
+            qPairs(R),
+            qOrder(R)
+          ];
+        }
+      },
+      {
+        short: 'ด่าน 3',
+        title: 'ด่าน 3 · ทักษะกระบวนการและการประยุกต์',
+        kind: 'P',
+        points: 1,
+        skill: 'การวิเคราะห์ข้อผิดพลาดและแก้ปัญหาในสถานการณ์จริง',
+        review: 'หัวข้อ 1.3',
+        desc: 'จับผิดวิธีทำและแก้โจทย์สถานการณ์ปัญหาหลายขั้นตอน',
+        intro: 'วิเคราะห์ทีละขั้นตอน แสดงวิธีคิดอย่างมีเหตุผล',
+        build(R) {
+          // [ใส่โจทย์ด่านที่ 3 ตรงนี้]
+          return [
+            qFind(R),
+            qGroup(R)
+          ];
+        }
+      }
+    ]
+  };
+})();
+
+</script>
+<!-- ==================================================================== -->
+<script>/* ===== MathKraft HW engine — UI ===== */
+(function () {
+  'use strict';
+  const MK = window.MK;
+  const HW = window.HW;
+  const Q = MK.Q;
+
+  /* ---------- tiny DOM helpers ---------- */
+  function h(tag, props) {
+    const el = document.createElement(tag);
+    if (props) {
+      for (const k in props) {
+        const v = props[k];
+        if (v == null || v === false) continue;
+        if (k === 'class') el.className = v;
+        else if (k === 'html') el.innerHTML = rich(v);
+        else if (k === 'text') el.textContent = v;
+        else if (k === 'style') el.style.cssText = v;
+        else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
+        else el.setAttribute(k, v === true ? '' : v);
+      }
+    }
+    for (let i = 2; i < arguments.length; i++) add(el, arguments[i]);
+    return el;
+  }
+  function add(el, c) {
+    if (c == null || c === false) return;
+    if (Array.isArray(c)) c.forEach((x) => add(el, x));
+    else if (c instanceof Node) el.appendChild(c);
+    else el.appendChild(document.createTextNode(String(c)));
+  }
+  function km(t, disp) {
+    try {
+      if (window.katex) return window.katex.renderToString(t, { displayMode: disp, throwOnError: false, strict: 'ignore' });
+    } catch (e) { /* fall through */ }
+    return t;
+  }
+  function rich(s) {
+    return String(s == null ? '' : s)
+      .replace(/\$\$([\s\S]+?)\$\$/g, (m, t) => km(t, true))
+      .replace(/\\\[([\s\S]+?)\\\]/g, (m, t) => km(t, true))
+      .replace(/\\\(([\s\S]+?)\\\)/g, (m, t) => km(t, false))
+      .replace(/(?<!\\)\$([^\$\n]+?)(?<!\\)\$/g, (m, t) => km(t, false))
+      .replace(/\\\$/g, '$');
+  }
+  function R(html, tag, cls) { return h(tag || 'span', { class: cls || '', html }); }
+  const $ = (s, r) => (r || document).querySelector(s);
+  const mmss = (s) => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  const sc = (x) => String(+(+x).toFixed(2)); // 1.5 -> "1.5", 2 -> "2"
+  const safe = (fn, d) => { try { return fn(); } catch (e) { return d; } };
+  function toast(msg) {
+    const t = h('div', { class: 'toast', text: msg });
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2200);
+  }
+
+  /* ---------- storage ---------- */
+  const KEY = 'mk-template-' + HW.id;
+  const SKEY = 'mk-template-student';
+  function loadSaved() { return safe(() => JSON.parse(localStorage.getItem(KEY)) || null, null); }
+  function save(o) { safe(() => localStorage.setItem(KEY, JSON.stringify(o))); }
+  function loadStudent() { return safe(() => JSON.parse(localStorage.getItem(SKEY)) || null, null); }
+  function saveStudent(s) { safe(() => localStorage.setItem(SKEY, JSON.stringify(s))); }
+
+  /* ---------- state ---------- */
+  const S = {
+    student: null,
+    saved: { attempts: [] }, // completed attempts
+    run: null, // running attempt
+    fs: 1,
+  };
+  const app = document.getElementById('app');
+  let timerH = null;
+
+  /* =====================================================================
+     DRAG / TAP chips
+     ===================================================================== */
+  const dnd = { sel: null, scope: null };
+  function clearSel() {
+    if (dnd.sel) dnd.sel.el.classList.remove('sel');
+    dnd.sel = null;
+    document.querySelectorAll('.tap-ready').forEach((z) => z.classList.remove('tap-ready'));
+  }
+  function mkChip(html, key, scope) {
+    const el = h('button', { type: 'button', class: 'chip' }, h('span', { class: 'cb', html }));
+    const chip = { el, key, zone: null, locked: false, scope };
+    el._chip = chip;
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (e.detail === 0) toggleSel(chip); // keyboard activation
+    });
+    el.addEventListener('pointerdown', (e) => {
+      if (chip.locked || (e.button != null && e.button > 0)) return;
+      const sx = e.clientX, sy = e.clientY;
+      let dragging = false, ghost = null, over = null, gw = 0, lastX = sx, lastY = sy, scroller = null;
+      try { el.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ }
+      const zoneAt = (x, y) => {
+        const els = document.elementsFromPoint(x, y);
+        for (const n of els) { const z = n.closest && n.closest('.zone,.slot'); if (z && z._zone && z._zone.scope === chip.scope) return z._zone; }
+        return null;
+      };
+      const hilite = () => {
+        const z = zoneAt(lastX, lastY);
+        if (over && over !== z) over.el.classList.remove('over');
+        over = z; if (z) z.el.classList.add('over');
+      };
+      const move = (ev) => {
+        lastX = ev.clientX; lastY = ev.clientY;
+        if (!dragging && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 8) {
+          dragging = true;
+          clearSel();
+          ghost = el.cloneNode(true);
+          ghost.classList.add('ghost');
+          gw = el.offsetWidth;
+          ghost.style.width = gw + 'px';
+          document.body.appendChild(ghost);
+          el.classList.add('drag-src');
+          // auto-scroll the page while dragging near the top/bottom edge (phones)
+          scroller = setInterval(() => {
+            const vh = window.innerHeight;
+            if (lastY < 90) window.scrollBy(0, -16); else if (lastY > vh - 90) window.scrollBy(0, 16); else return;
+            hilite();
+          }, 16);
+        }
+        if (dragging) {
+          ghost.style.transform = 'translate(' + (ev.clientX - gw / 2) + 'px,' + (ev.clientY - 26) + 'px)';
+          hilite();
+        }
+      };
+      const up = (ev) => {
+        el.removeEventListener('pointermove', move);
+        el.removeEventListener('pointerup', up);
+        el.removeEventListener('pointercancel', up);
+        try { el.releasePointerCapture(e.pointerId); } catch (x) { /* ignore */ }
+        if (scroller) clearInterval(scroller);
+        if (dragging) {
+          ghost.remove(); el.classList.remove('drag-src');
+          if (over) over.el.classList.remove('over');
+          const z = zoneAt(ev.clientX, ev.clientY);
+          if (z) place(chip, z);
+        } else toggleSel(chip);
+      };
+      el.addEventListener('pointermove', move);
+      el.addEventListener('pointerup', up);
+      el.addEventListener('pointercancel', up);
+    });
+    return chip;
+  }
+  function toggleSel(chip) {
+    if (chip.locked) return;
+    const same = dnd.sel === chip;
+    clearSel();
+    if (same) return;
+    dnd.sel = chip; chip.el.classList.add('sel');
+    chip.scope.zones.forEach((z) => z.el.classList.add('tap-ready'));
+  }
+  function mkZone(el, scope, o) {
+    const zone = Object.assign({ el, scope, chips: [], cap: Infinity, key: null, pool: false }, o);
+    el._zone = zone;
+    scope.zones.push(zone);
+    el.addEventListener('click', () => { if (dnd.sel && dnd.sel.scope === scope) { const c = dnd.sel; clearSel(); place(c, zone); } });
+    return zone;
+  }
+  function detach(chip) {
+    if (chip.zone) {
+      chip.zone.chips = chip.zone.chips.filter((c) => c !== chip);
+      if (chip.zone.onChange) chip.zone.onChange();
+    }
+    chip.zone = null;
+  }
+  function moveTo(chip, zone) {
+    detach(chip);
+    zone.el.appendChild(chip.el);
+    zone.chips.push(chip); chip.zone = zone;
+    if (zone.onChange) zone.onChange();
+  }
+  function place(chip, zone) {
+    if (chip.locked) return;
+    if (zone.cap === 1 && zone.chips.length >= 1 && zone.chips[0] !== chip) {
+      const old = zone.chips[0];
+      if (old.locked) return;
+      moveTo(old, zone.scope.pool);
+    }
+    moveTo(chip, zone);
+    chip.el.classList.remove('no');
+    if (scopeChanged) scopeChanged(zone.scope);
+  }
+  let scopeChanged = null;
+
+  /* =====================================================================
+     QUESTION COMPONENTS
+     each returns {el, weight, done, credit}; call c.finish(credit) when done
+     ===================================================================== */
+  function newComp(q) {
+    return { q, weight: MK.weightOf(q), done: false, credit: 0, onDone: null };
+  }
+  function finishComp(c, credit) {
+    c.done = true; c.credit = credit;
+    if (c.onDone) c.onDone();
+  }
+  function fbSet(box, kind, text) {
+    box.className = 'fb ' + (kind || '');
+    box.innerHTML = '';
+    if (!text) return;
+    const ic = { ok: '✓', no: '✗', hint: '💡' }[kind] || '';
+    box.append(h('span', { class: 'ic', text: ic }), R(text, 'div'));
+  }
+  function whyBox(why, open) {
+    if (!why) return null;
+    return h('details', { class: 'why', open: open ? true : null }, h('summary', { text: 'ดูวิธีคิด' }), h('div', { class: 'wb', html: why }));
+  }
+
+  /* ----- generic checker with 2 tries (1.0 first try, 0.5 second try) ----- */
+  function makeChecker(c, ctx, parts, o) {
+    let tries = 0;
+    const fb = o.fb;
+    function finalize(allRight) {
+      const wsum = parts.reduce((s, p) => s + (p.weight || 1), 0);
+      const cr = parts.reduce((s, p) => s + (p.weight || 1) * p.credit, 0) / wsum;
+      ctx.stats.items += parts.length;
+      ctx.stats.first += parts.filter((p) => p.credit === 1).length;
+      o.btn.disabled = true;
+      if (allRight) fbSet(fb, 'ok', tries === 1 ? 'ถูกต้องทั้งหมด! เยี่ยมมาก' : 'ถูกต้องแล้ว (แก้ได้ในครั้งที่ 2 ได้คะแนนครึ่งหนึ่งในข้อที่แก้)');
+      else fbSet(fb, 'no', 'ครบ 2 ครั้งแล้ว — ดูเฉลยและวิธีคิดด้านล่าง ข้อที่ยังไม่ถูกจะไม่ได้คะแนน');
+      if (o.after) o.after();
+      finishComp(c, cr);
+    }
+    function check() {
+      if (c.done) return;
+      const open = parts.filter((p) => !p.done);
+      if (open.some((p) => !p.filled())) { fbSet(fb, 'hint', o.fillMsg || 'ตอบให้ครบทุกช่องก่อนกดตรวจ'); return; }
+      tries++; ctx.stats.tries++;
+      let wrong = 0;
+      open.forEach((p) => {
+        if (p.test()) { p.done = true; p.credit = tries === 1 ? 1 : 0.5; if (p.onRight) p.onRight(tries); }
+        else { wrong++; if (p.onWrong) p.onWrong(tries); }
+      });
+      if (!wrong) return finalize(true);
+      if (tries >= 2) {
+        parts.filter((p) => !p.done).forEach((p) => { p.done = true; p.credit = 0; if (p.reveal) p.reveal(); });
+        return finalize(false);
+      }
+      ctx.stats.hints++;
+      fbSet(fb, 'hint', (o.hint ? o.hint + ' — ' : '') + 'ยังไม่ถูกบางส่วน ลองแก้อีกครั้ง (ตอบถูกในครั้งที่ 2 ได้ครึ่งคะแนนของข้อนั้น)');
+    }
+    o.btn.addEventListener('click', check);
+    return check;
+  }
+
+  /* ----- choice (F1) ----- */
+  function mChoice(q, ctx) {
+    const c = newComp(q);
+    const idx = q.options.map((_, i) => i);
+    const order = q.shuffle === false ? idx : ctx.R.shuffle(idx);
+    c.order = order;
+    const box = h('div', { class: 'qbody' });
+    const fb = h('div', { class: 'fb' });
+    const opts = h('div', { class: 'opts' });
+    const btns = order.map((oi, pos) => {
+      const b = h('button', { type: 'button', class: 'opt', 'data-oi': oi }, h('span', { class: 'k', text: 'กขคงจฉ'[pos] || pos + 1 }), R(q.options[oi], 'span'));
+      b.addEventListener('click', () => {
+        if (c.done) return;
+        const ok = oi === q.answer;
+        btns.forEach((x) => (x.disabled = true));
+        b.classList.add(ok ? 'ok' : 'no');
+        if (!ok) btns[order.indexOf(q.answer)].classList.add('ok');
+        ctx.stats.items++; ctx.stats.tries++;
+        if (ok) { ctx.stats.first++; fbSet(fb, 'ok', q.okMsg || 'ถูกต้อง!'); }
+        else fbSet(fb, 'no', 'ยังไม่ถูก — คำตอบที่ถูกคือข้อที่ไฮไลต์สีเขียว');
+        const w = whyBox(q.why, !ok); if (w) box.appendChild(w);
+        finishComp(c, ok ? 1 : 0);
+      });
+      return b;
+    });
+    box.append(R(q.q, 'div', 'qbody'), opts, fb);
+    btns.forEach((x) => opts.appendChild(x));
+    c.el = box;
+    return c;
+  }
+
+  /* ----- fill (F2) ----- */
+  function ansText(f) {
+    if (f.show) return f.show;
+    if (f.set) return f.set.map((x) => MK.fmt(x)).join(' , ');
+    if (f.text) return [].concat(f.text)[0];
+    const a = [].concat(f.answer)[0];
+    return typeof a === 'number' ? MK.fmt(a) : String(a);
+  }
+  function mFill(q, ctx) {
+    const c = newComp(q);
+    const fields = q.fields || [{ answer: q.answer, set: q.set, text: q.text, tol: q.tol, unit: q.unit, kb: q.kb, ph: q.ph, show: q.show }];
+    const box = h('div', { class: 'qbody' });
+    const fb = h('div', { class: 'fb' });
+    const btn = h('button', { type: 'button', class: 'btn navy sm', text: 'ตรวจคำตอบ' });
+    c.inputs = [];
+    const parts = fields.map((f) => {
+      const a0 = [].concat(f.answer)[0];
+      const intNonNeg = !f.set && !f.text && typeof a0 === 'number' && a0 >= 0 && Math.floor(a0) === a0;
+      const input = h('input', { class: 'num-in', type: 'text', inputmode: f.kb === 'full' ? 'text' : intNonNeg ? 'numeric' : 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', enterkeyhint: 'done', placeholder: f.ph || 'พิมพ์คำตอบ', 'aria-label': f.label || 'คำตอบ' });
+      const rev = h('span', { class: 'rev hide' });
+      const row = h('div', { class: 'fillrow' }, f.label ? R(f.label, 'span', 'flab') : null, input, f.unit ? R(f.unit, 'span', 'unit') : null, rev);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); btn.click(); } });
+      c.inputs.push(input);
+      box.appendChild(row);
+      return {
+        weight: f.weight || 1,
+        filled: () => input.value.trim() !== '',
+        test: () => MK.matchAnswer(input.value, f),
+        onRight: () => { input.classList.remove('no'); input.classList.add('ok'); input.readOnly = true; },
+        onWrong: () => { input.classList.add('no'); },
+        reveal: () => { input.classList.remove('no'); input.readOnly = true; rev.innerHTML = 'เฉลย: ' + rich(ansText(f)); rev.classList.remove('hide'); },
+      };
+    });
+    box.insertBefore(R(q.q, 'div', 'qbody'), box.firstChild);
+    box.append(h('div', { class: 'row' }, btn), fb);
+    makeChecker(c, ctx, parts, { fb, btn, hint: q.hint, after: () => { const w = whyBox(q.why, !parts.every((p) => p.credit === 1)); if (w) box.appendChild(w); } });
+    c.el = box;
+    return c;
+  }
+
+  /* ----- sort / pairs (F3) ----- */
+  function mMatch(q, ctx) {
+    const c = newComp(q);
+    const scope = { zones: [], pool: null };
+    const box = h('div', { class: 'qbody' });
+    const fb = h('div', { class: 'fb' });
+    const btn = h('button', { type: 'button', class: 'btn navy sm', text: 'ตรวจคำตอบ', disabled: true });
+    const poolEl = h('div', { class: 'zone pool' });
+    const pool = mkZone(poolEl, scope, { pool: true });
+    scope.pool = pool;
+    let parts = [];
+    const shuffled = ctx.R.shuffle(q.type === 'sort' ? q.items.map((it) => ({ html: it.html, key: it.bin })) : q.chips);
+    const chips = shuffled.map((it) => mkChip(it.html, it.key, scope));
+    c.chips = chips;
+    const refresh = () => {
+      if (c.done) return;
+      const open = parts.filter((p) => !p.done);
+      btn.disabled = !open.every((p) => p.filled());
+    };
+    scopeChanged = (sc2) => { if (sc2 === scope) refresh(); };
+    pool.onChange = refresh;
+
+    if (q.type === 'sort') {
+      const bins = h('div', { class: 'bins' });
+      const zones = q.bins.map((b) => {
+        const el = h('div', { class: 'zone' }, h('div', { class: 'zt', html: b.label }));
+        bins.appendChild(el);
+        return mkZone(el, scope, { key: b.id });
+      });
+      c.zones = zones;
+      box.append(R(q.q, 'div', 'qbody'), h('div', { class: 'mute', style: 'font-size:.86em', text: 'ลากการ์ดไปวางในกลุ่มที่ถูก หรือแตะการ์ดแล้วแตะกลุ่ม' }), poolEl, bins);
+      chips.forEach((ch) => moveTo(ch, pool));
+      parts = chips.map((ch) => ({
+        weight: 1,
+        filled: () => ch.zone && !ch.zone.pool,
+        test: () => ch.zone && ch.zone.key === ch.key,
+        onRight: () => { ch.locked = true; ch.el.classList.add('locked', 'ok'); },
+        onWrong: () => { ch.el.classList.add('no'); moveTo(ch, pool); },
+        reveal: () => { const z = zones.find((zz) => zz.key === ch.key); moveTo(ch, z); ch.locked = true; ch.el.classList.add('locked', 'rev'); ch.el.classList.remove('no'); },
+      }));
+    } else {
+      const rows = h('div');
+      const slots = q.left.map((l) => {
+        const slotEl = h('div', { class: 'slot' }, h('span', { class: 'ph', text: 'วางที่นี่' }));
+        rows.appendChild(h('div', { class: 'pair-row' }, R(l.html, 'div'), slotEl));
+        return mkZone(slotEl, scope, { key: l.key, cap: 1 });
+      });
+      slots.forEach((s) => { const ph = s.el.querySelector('.ph'); s.onChange = () => { ph.classList.toggle('hide', s.chips.length > 0); refresh(); }; });
+      c.zones = slots;
+      box.append(R(q.q, 'div', 'qbody'), h('div', { class: 'mute', style: 'font-size:.86em', text: 'ลากการ์ดไปวางในช่อง หรือแตะการ์ดแล้วแตะช่อง' }), rows, poolEl);
+      chips.forEach((ch) => moveTo(ch, pool));
+      parts = slots.map((s) => ({
+        weight: 1,
+        filled: () => s.chips.length === 1,
+        test: () => s.chips.length === 1 && s.chips[0].key === s.key,
+        onRight: () => { const ch = s.chips[0]; ch.locked = true; ch.el.classList.add('locked', 'ok'); },
+        onWrong: () => { const ch = s.chips[0]; ch.el.classList.add('no'); moveTo(ch, pool); },
+        reveal: () => {
+          const ch = chips.find((x) => x.key === s.key && !x.locked);
+          if (ch) { moveTo(ch, s); ch.locked = true; ch.el.classList.add('locked', 'rev'); ch.el.classList.remove('no'); }
+        },
+      }));
+    }
+    box.append(h('div', { class: 'row' }, btn), fb);
+    makeChecker(c, ctx, parts, { fb, btn, hint: q.hint, fillMsg: 'วางให้ครบทุกการ์ดก่อนกดตรวจ', after: () => { clearSel(); if (!pool.chips.length) poolEl.classList.add('hide'); const w = whyBox(q.why, !parts.every((p) => p.credit === 1)); if (w) box.appendChild(w); } });
+    c.el = box;
+    return c;
+  }
+
+  /* ----- order (F4) : arrange solution steps + choose a reason for each ----- */
+  function mOrder(q, ctx) {
+    const c = newComp(q);
+    const n = q.steps.length;
+    let ids = ctx.R.shuffle(q.steps.map((_, i) => i));
+    if (ids.every((v, i) => v === i)) ids = ids.slice(1).concat(ids[0]);
+    const sel = {};
+    const box = h('div', { class: 'qbody' });
+    const fb = h('div', { class: 'fb' });
+    const btn = h('button', { type: 'button', class: 'btn navy sm', text: 'ตรวจวิธีทำ' });
+    const list = h('div', { class: 'ord' });
+    const rowEl = {};
+    const selEl = {}, setters = {}, wraps = {};
+    q.steps.forEach((s, i) => {
+      const sl = h('select', { 'aria-label': 'เลือกเหตุผลของขั้นตอน' }, h('option', { value: '', text: '— เลือกเหตุผลของขั้นตอนนี้ —' }), q.reasons.map((r, ri) => h('option', { value: ri, html: r.replace(/\\\(|\\\)/g, '').replace(/(?<!\\)\$/g, '') })));
+      // option text cannot render KaTeX; strip delimiters for readability
+      const cap = h('div', { class: 'mute', style: 'font-size:.82em;margin-top:3px' });
+      const setSel = (v) => { sel[i] = v; sl.value = v == null ? '' : v; cap.innerHTML = v == null ? '' : rich(q.reasons[v]); };
+      sl.addEventListener('change', () => { sel[i] = sl.value === '' ? null : +sl.value; cap.innerHTML = sel[i] == null ? '' : rich(q.reasons[sel[i]]); });
+      selEl[i] = sl; sel[i] = null; setters[i] = setSel; wraps[i] = h('div', {}, sl, cap);
+    });
+    function paint() {
+      list.innerHTML = '';
+      ids.forEach((id, pos) => {
+        const up = h('button', { type: 'button', 'aria-label': 'เลื่อนขึ้น', text: '▲', disabled: pos === 0 || c.done ? true : null });
+        const dn = h('button', { type: 'button', 'aria-label': 'เลื่อนลง', text: '▼', disabled: pos === n - 1 || c.done ? true : null });
+        up.addEventListener('click', () => { [ids[pos - 1], ids[pos]] = [ids[pos], ids[pos - 1]]; paint(); });
+        dn.addEventListener('click', () => { [ids[pos + 1], ids[pos]] = [ids[pos], ids[pos + 1]]; paint(); });
+        const row = h('div', { class: 'ord-row' }, h('div', { class: 'ord-ctl' }, up, dn), h('div', { class: 'ord-main' }, h('div', {}, h('span', { class: 'ord-n', text: (pos + 1) + '.' }), R(q.steps[id].html)), wraps[id]));
+        selEl[id].disabled = c.done;
+        if (row._m) row.classList.add(row._m);
+        rowEl[id] = row;
+        if (lastMarks && lastMarks[id]) row.classList.add(lastMarks[id]);
+        list.appendChild(row);
+      });
+    }
+    let lastMarks = null;
+    const credit = {}; // per part key -> credit
+    let tries = 0;
+    function evalAll() {
+      const res = {};
+      ids.forEach((id, pos) => { res['p' + id] = pos === id; res['r' + id] = sel[id] === q.steps[id].reason; });
+      return res;
+    }
+    btn.addEventListener('click', () => {
+      if (c.done) return;
+      if (Object.values(sel).some((v) => v == null)) { fbSet(fb, 'hint', 'เลือกเหตุผลให้ครบทุกขั้นตอนก่อนกดตรวจ'); return; }
+      tries++; ctx.stats.tries++;
+      const res = evalAll();
+      const keys = Object.keys(res);
+      keys.forEach((k) => { if (credit[k] == null && res[k]) credit[k] = tries === 1 ? 1 : 0.5; });
+      lastMarks = {};
+      q.steps.forEach((_, id) => { lastMarks[id] = res['p' + id] && res['r' + id] ? 'ok' : 'no'; });
+      const all = keys.every((k) => res[k]);
+      const finish = () => {
+        keys.forEach((k) => { if (credit[k] == null) credit[k] = 0; });
+        const cr = keys.reduce((s, k) => s + credit[k], 0) / keys.length;
+        ctx.stats.items += keys.length; ctx.stats.first += keys.filter((k) => credit[k] === 1).length;
+        btn.disabled = true;
+        if (!all) { ids = q.steps.map((_, i) => i); q.steps.forEach((s, i) => setters[i](s.reason)); lastMarks = {}; }
+        paint();
+        if (!all) q.steps.forEach((_, i) => rowEl[i].classList.add('ok'));
+        fbSet(fb, all ? 'ok' : 'no', all ? (tries === 1 ? 'เรียงขั้นตอนและเลือกเหตุผลถูกทั้งหมด!' : 'ถูกแล้วในครั้งที่ 2') : 'ครบ 2 ครั้งแล้ว — แสดงลำดับและเหตุผลที่ถูกต้องให้แล้ว');
+        const w = whyBox(q.why, !all); if (w) box.appendChild(w);
+        finishComp(c, cr);
+      };
+      if (all) { paint(); return finish(); }
+      if (tries >= 2) { paint(); return finish(); }
+      ctx.stats.hints++;
+      paint();
+      fbSet(fb, 'hint', (q.hint ? q.hint + ' — ' : '') + 'ขั้นตอนที่ขึ้นสีแดงยังไม่ถูก (ลำดับหรือเหตุผล) ลองแก้อีกครั้ง');
+    });
+    box.append(R(q.q, 'div', 'qbody'), h('div', { class: 'mute', style: 'font-size:.86em', text: 'ใช้ปุ่ม ▲ ▼ เรียงลำดับขั้นตอน แล้วเลือกเหตุผลของแต่ละขั้น' }), list, h('div', { class: 'row' }, btn), fb);
+    paint();
+    c.dbg = { fix() { ids = q.steps.map((_, i) => i); q.steps.forEach((s, i) => setters[i](s.reason)); paint(); }, wrong() { ids = q.steps.map((_, i) => n - 1 - i); q.steps.forEach((s, i) => setters[i]((s.reason + 1) % q.reasons.length)); paint(); }, check: () => btn.click() };
+    c.el = box;
+    return c;
+  }
+
+  /* ----- find the error (F5) ----- */
+  function mFind(q, ctx) {
+    const c = newComp(q);
+    const box = h('div', { class: 'qbody' });
+    const fb = h('div', { class: 'fb' });
+    const btn = h('button', { type: 'button', class: 'btn navy sm', text: 'ตรวจคำตอบ' });
+    let pick = null;
+    const lines = q.lines.map((html, i) => {
+      const b = h('button', { type: 'button', class: 'ln' }, h('span', { class: 'no-', text: (i + 1) + '.' }), R(html, 'span'));
+      b.addEventListener('click', () => { if (b.disabled) return; pick = i; lines.forEach((x, j) => x.classList.toggle('sel', j === i)); });
+      return b;
+    });
+    const causeSel = h('select', { 'aria-label': 'เลือกสาเหตุ' }, h('option', { value: '', text: '— เลือกสาเหตุที่ผิด —' }), q.causes.map((t, i) => h('option', { value: i, text: t.replace(/\\\(|\\\)/g, '').replace(/(?<!\\)\$/g, '') })));
+    const causeCap = h('div', { class: 'mute', style: 'font-size:.84em;margin-top:3px' });
+    causeSel.addEventListener('change', () => { causeCap.innerHTML = causeSel.value === '' ? '' : rich(q.causes[+causeSel.value]); });
+    const inp = h('input', { class: 'num-in', type: 'text', inputmode: 'text', autocomplete: 'off', placeholder: 'พิมพ์คำตอบที่ถูกต้อง' });
+    const fld = q.fix;
+    const rev = h('span', { class: 'rev hide' });
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); btn.click(); } });
+    const parts = [
+      { weight: 1, filled: () => pick != null, test: () => pick === q.wrong,
+        onRight: () => { lines.forEach((l) => (l.disabled = true)); lines[q.wrong].classList.remove('sel'); lines[q.wrong].classList.add('ok'); },
+        onWrong: () => { if (pick != null) lines[pick].classList.add('no'); setTimeout(() => lines.forEach((l) => l.classList.remove('no')), 700); },
+        reveal: () => { lines.forEach((l) => { l.disabled = true; l.classList.remove('sel'); }); lines[q.wrong].classList.add('ok'); } },
+      { weight: 1, filled: () => causeSel.value !== '', test: () => +causeSel.value === q.cause,
+        onRight: () => { causeSel.disabled = true; }, onWrong: () => {}, reveal: () => { causeSel.value = q.cause; causeSel.disabled = true; } },
+      { weight: 1, filled: () => inp.value.trim() !== '', test: () => MK.matchAnswer(inp.value, fld),
+        onRight: () => { inp.classList.add('ok'); inp.readOnly = true; }, onWrong: () => inp.classList.add('no'),
+        reveal: () => { inp.readOnly = true; inp.classList.remove('no'); rev.innerHTML = 'เฉลย: ' + rich(ansText(fld)); rev.classList.remove('hide'); } },
+    ];
+    box.append(R(q.q, 'div', 'qbody'), h('div', { class: 'subq' }, h('div', { class: 'sl', text: 'ขั้นที่ 1 · คลิกบรรทัดที่ผิด' }), lines),
+      h('div', { class: 'subq' }, h('div', { class: 'sl', text: 'ขั้นที่ 2 · เลือกสาเหตุ' }), h('div', { class: 'cause' }, causeSel, causeCap)),
+      h('div', { class: 'subq' }, h('div', { class: 'sl', text: 'ขั้นที่ 3 · คำตอบที่ถูกต้อง' }), R(q.fixLabel || '', 'div'), h('div', { class: 'fillrow' }, inp, rev)),
+      h('div', { class: 'row', style: 'margin-top:10px' }, btn), fb);
+    c.dbg = { fix() { lines[q.wrong].click(); causeSel.value = q.cause; inp.value = fld.set ? fld.set.join(', ') : String([].concat(fld.answer)[0]); }, wrong() { lines[(q.wrong + 1) % lines.length].click(); causeSel.value = (q.cause + 1) % q.causes.length; inp.value = '987654'; }, check: () => btn.click() };
+    makeChecker(c, ctx, parts, { fb, btn, hint: q.hint, fillMsg: 'ตอบให้ครบทั้ง 3 ขั้นก่อนกดตรวจ', after: () => { const w = whyBox(q.why, !parts.every((p) => p.credit === 1)); if (w) box.appendChild(w); } });
+    c.el = box;
+    return c;
+  }
+
+  /* ----- group (F7): story + sequential parts ----- */
+  function mGroup(q, ctx) {
+    const c = newComp(q);
+    const box = h('div', { class: 'qbody' });
+    if (q.story) box.appendChild(R(q.story, 'div', 'story'));
+    const comps = q.parts.map((p, i) => {
+      const pc = mountQ(p, ctx);
+      const wrap = h('div', { class: 'subq' + (i > 0 ? ' hide' : '') }, p.label ? h('div', { class: 'sl', text: p.label }) : null, pc.el);
+      box.appendChild(wrap);
+      return { pc, wrap };
+    });
+    c.parts = comps.map((x) => x.pc);
+    comps.forEach((x, i) => {
+      x.pc.onDone = () => {
+        if (i + 1 < comps.length) { comps[i + 1].wrap.classList.remove('hide'); }
+        else {
+          const wsum = comps.reduce((s, y) => s + y.pc.weight, 0);
+          finishComp(c, comps.reduce((s, y) => s + y.pc.weight * y.pc.credit, 0) / wsum);
+        }
+        if (c.onProgress) c.onProgress();
+      };
+    });
+    c.el = box;
+    return c;
+  }
+
+  /* ----- tree builder (F6, HW-01) ----- */
+  function mTree(q, ctx) {
+    const c = newComp(q);
+    const box = h('div', { class: 'qbody' });
+    const fb = h('div', { class: 'fb' });
+    const a = q.step1.items, b = q.step2.items;
+    const forbid = new Set((q.forbid || []).map((p) => p[0] + ',' + p[1]));
+    const validTotal = a.length * b.length - forbid.size;
+    let built1 = new Set(), builtLeaves = new Set(), wrong = 0;
+    const counter = h('span', { class: 'counter' }, 'ผลลัพธ์ที่ต่อได้แล้ว ', h('b', { text: '0' }));
+    const tree = h('div', { class: 'tree' });
+    const root = h('div', { class: 't-node t-root', text: 'เริ่ม' });
+    const branches = h('div', { class: 't-branches' });
+    const leafWraps = {};
+    function update() {
+      counter.querySelector('b').textContent = builtLeaves.size;
+      a.forEach((_, i) => {
+        const live = built1.has(i);
+        b.forEach((__, j) => {
+          const lw = leafWraps[i + ',' + j];
+          lw.wrap.classList.toggle('off', !live);
+          lw.btn.classList.toggle('dead', !live);
+          lw.btn.classList.toggle('live', live && !builtLeaves.has(i + ',' + j));
+        });
+      });
+      a.forEach((_, i) => groupBtns[i].classList.toggle('live', !built1.has(i)));
+      if (builtLeaves.size === validTotal && built1.size === a.length && !c.done) {
+        const credit = Math.max(0, 1 - 0.5 * wrong);
+        ctx.stats.items++; ctx.stats.tries++; if (credit === 1) ctx.stats.first++;
+        fbSet(fb, 'ok', 'ต่อกิ่งครบแล้ว! ผลลัพธ์ทั้งหมดที่เป็นไปได้ = ' + validTotal + ' แบบ' + (wrong ? ' (แตะกิ่งที่ไม่ถูกเงื่อนไข ' + wrong + ' ครั้ง ถูกหักคะแนน)' : ''));
+        finishComp(c, credit);
+      }
+    }
+    const groupBtns = [];
+    a.forEach((lab1, i) => {
+      const nodeBtn = h('button', { type: 'button', class: 't-node ghost-n live', html: lab1, 'aria-label': 'ต่อกิ่ง ' + lab1 });
+      groupBtns.push(nodeBtn);
+      nodeBtn.addEventListener('click', () => {
+        if (built1.has(i)) return;
+        built1.add(i); nodeBtn.classList.remove('ghost-n', 'live'); nodeBtn.classList.add('built', 'pop'); update();
+      });
+      const leaves = h('div', { class: 't-leaves' });
+      b.forEach((lab2, j) => {
+        const lb = h('button', { type: 'button', class: 't-node ghost-n leaf dead', html: lab2, 'aria-label': 'ต่อกิ่ง ' + lab1 + ' แล้ว ' + lab2 });
+        const wrap = h('div', { class: 't-leafwrap off' }, lb);
+        leafWraps[i + ',' + j] = { wrap, btn: lb };
+        lb.addEventListener('click', () => {
+          const k = i + ',' + j;
+          if (builtLeaves.has(k) || !built1.has(i) || c.done) return;
+          if (forbid.has(k)) { wrong++; lb.classList.add('no'); setTimeout(() => lb.classList.remove('no'), 500); fbSet(fb, 'no', 'กิ่งนี้ไม่ได้ — ' + (q.forbidMsg || 'ขัดกับเงื่อนไขของโจทย์')); lb.style.animation = 'shake .35s'; setTimeout(() => (lb.style.animation = ''), 400); return; }
+          builtLeaves.add(k); lb.classList.remove('ghost-n', 'live', 'dead'); lb.classList.add('built', 'pop'); fbSet(fb, '', ''); update();
+        });
+        leaves.appendChild(wrap);
+      });
+      branches.appendChild(h('div', { class: 't-group' }, nodeBtn, leaves));
+    });
+    tree.append(root, branches);
+    box.append(R(q.q, 'div', 'qbody'));
+    if (q.rule) box.append(R(q.rule, 'div', 'rulebox'));
+    box.append(h('div', { class: 'mute', style: 'font-size:.86em;margin-bottom:4px', html: q.how || 'แตะวงที่กะพริบเพื่อต่อกิ่ง: เริ่มจากขั้นที่ 1 แล้วต่อขั้นที่ 2 ให้ครบทุกกิ่ง' }), tree, h('div', { class: 'row' }, counter), fb);
+    update();
+    c.el = box;
+    return c;
+  }
+
+  /* ----- custom (labs, graphs, ...) ----- */
+  function mCustom(q, ctx) {
+    const c = newComp(q);
+    const api = { h, R, rich, fbSet, whyBox, finish: (cr) => finishComp(c, cr), ctx, MK, mkChip, mkZone, place, moveTo, mountQ };
+    c.el = h('div', { class: 'qbody' });
+    q.mount(c.el, api, c);
+    return c;
+  }
+
+  function mountQ(q, ctx) {
+    switch (q.type) {
+      case 'choice': return mChoice(q, ctx);
+      case 'fill': return mFill(q, ctx);
+      case 'sort': case 'pairs': return mMatch(q, ctx);
+      case 'order': return mOrder(q, ctx);
+      case 'find': return mFind(q, ctx);
+      case 'group': return mGroup(q, ctx);
+      case 'tree': return mTree(q, ctx);
+      case 'custom': return mCustom(q, ctx);
+    }
+    throw new Error('unknown question type ' + q.type);
+  }
+  const TYPE_LABEL = { choice: 'เลือกตอบ', fill: 'เติมคำตอบ', sort: 'จับคู่ / ลากวาง', pairs: 'จับคู่ / ลากวาง', order: 'สร้างวิธีทำ', find: 'จับผิดวิธีทำ', group: 'โจทย์สถานการณ์', tree: 'ห้องทดลอง', custom: 'ห้องทดลอง' };
+
+  /* =====================================================================
+     SCREENS
+     ===================================================================== */
+  function setUnit() { document.body.classList.add('u' + HW.unit); }
+  function top(opts) {
+    opts = opts || {};
+    return h('div', { class: 'top noprint', style: 'display:none !important;visibility:hidden !important;height:0 !important;overflow:hidden !important' }, h('div', { class: 'wrap' },
+      h('div', { class: 'brand' }, window.MK_LOGO ? h('img', { src: window.MK_LOGO, alt: '' }) : null, h('span', { text: 'ค31202 · ' + HW.id })),
+      h('div', { class: 'sp' }),
+      opts.timer ? h('span', { class: 'timer', id: 'timer', text: '00:00' }) : null,
+      h('button', { class: 'tbtn', type: 'button', 'aria-label': 'ลดขนาดตัวอักษร', text: 'A−', onclick: () => fontSize(-0.08) }),
+      h('button', { class: 'tbtn', type: 'button', 'aria-label': 'เพิ่มขนาดตัวอักษร', text: 'A+', onclick: () => fontSize(0.08) })));
+  }
+  function fontSize(d) {
+    S.fs = Math.min(1.4, Math.max(0.85, S.fs + d));
+    document.documentElement.style.setProperty('--fs', S.fs);
+  }
+  function mount(...nodes) {
+    stopTimer();
+    app.innerHTML = '';
+    nodes.forEach((n) => n && app.appendChild(n));
+    window.scrollTo(0, 0);
+  }
+  function stopTimer() { if (timerH) { clearInterval(timerH); timerH = null; } }
+  function art() {
+    const ns = 'http://www.w3.org/2000/svg';
+    const wrap = h('div', { class: 'hero-art' });
+    wrap.innerHTML = '<svg viewBox="0 0 380 260" width="100%" height="100%"><circle cx="270" cy="90" r="105" fill="var(--accent)" opacity=".9"/><circle cx="320" cy="60" r="95" fill="#16205B"/><circle cx="238" cy="62" r="64" fill="none" stroke="#16205B" stroke-width="1.5" opacity=".5"/><circle cx="238" cy="62" r="6" fill="#fff" stroke="#16205B" stroke-width="2"/></svg>';
+    return wrap;
+  }
+
+  /* ---------- intro ---------- */
+  function showIntro() {
+    const stu = S.student || loadStudent() || { name: '', cls: 'ม.4/1', no: '' };
+    const saved = S.saved.attempts;
+    const hero = h('div', { class: 'hero' }, h('div', { class: 'wrap' },
+      art(),
+      h('div', { class: 'eyebrow' }, window.MK_LOGO ? h('img', { src: window.MK_LOGO, alt: '' }) : null, h('span', { text: 'ค31202 คณิตศาสตร์เพิ่มเติม 2 · ม.4 · ' + HW.unitName }), h('i', { class: 'dash' })),
+      h('h1', {}, h('span', { class: 'num', text: HW.id }), HW.title),
+      h('p', { class: 'sub', html: HW.sub }),
+      h('div', { class: 'metas' },
+        h('span', { class: 'meta', html: 'แบบฝึกชิ้นที่ <b>' + parseInt(HW.id.slice(3), 10) + '</b> จาก 3' }),
+        h('span', { class: 'meta', html: 'ประมาณ <b>' + HW.size + '</b>' }),
+        h('span', { class: 'meta', html: 'คะแนน <b>' + (HW.P ? 'K ' + sc(HW.K) + ' + P ' + sc(HW.P) + ' = ' + sc(HW.K + HW.P) : 'K ' + sc(HW.K)) + '</b>' }))));
+
+    const nameI = h('input', { type: 'text', id: 'f-name', autocomplete: 'name', placeholder: 'เช่น นายสมชาย ใจดี', value: stu.name, maxlength: 60 });
+    const clsI = h('input', { type: 'text', id: 'f-cls', placeholder: 'ม.4/1', value: stu.cls || 'ม.4/1', maxlength: 8 });
+    const noI = h('input', { type: 'text', id: 'f-no', inputmode: 'numeric', placeholder: 'เช่น 7', value: stu.no, maxlength: 2 });
+    const err = h('div', { class: 'err', role: 'alert' });
+    const done = saved.length;
+    const startBtn = h('button', { type: 'button', class: 'btn pri', id: 'start', text: done ? 'เริ่มทำครั้งที่ ' + (done + 1) + ' →' : 'เริ่มทำแบบฝึก →' });
+    if (done >= 2) startBtn.classList.add('hide');
+    const go = () => {
+      const name = nameI.value.replace(/\s+/g, ' ').trim();
+      const cls = clsI.value.replace(/\s+/g, '').trim();
+      const no = noI.value.replace(/\D/g, '');
+      if (name.length < 3) { err.textContent = 'กรุณากรอกชื่อ-สกุลให้ครบ'; nameI.focus(); return; }
+      if (!cls) { err.textContent = 'กรุณากรอกชั้น เช่น ม.4/1'; clsI.focus(); return; }
+      if (!no || +no < 1 || +no > 99) { err.textContent = 'กรุณากรอกเลขที่เป็นตัวเลข เช่น 7'; noI.focus(); return; }
+      if (done && S.student && (S.student.name !== name || S.student.cls !== cls || S.student.no !== no)) {
+        err.textContent = 'ชื่อ/ชั้น/เลขที่ ไม่ตรงกับครั้งก่อน กรุณากรอกให้เหมือนเดิมเพื่อให้นับคะแนนรวมกันได้'; return;
+      }
+      err.textContent = '';
+      S.student = { name, cls, no };
+      saveStudent(S.student);
+      startAttempt();
+    };
+    startBtn.addEventListener('click', go);
+    [nameI, clsI, noI].forEach((i) => i.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); }));
+
+    const savedBox = done ? h('div', { class: 'saved' },
+      h('b', { text: 'ผลที่บันทึกไว้ในเครื่องนี้: ' }),
+      saved.map((a, i) => h('span', { class: 'att' + (i === bestIdx() ? ' best' : ''), style: 'margin-right:8px;display:inline-block', text: 'ครั้งที่ ' + a.n + ' = ' + sc(a.K + a.P) + '/' + sc(HW.K + HW.P) })),
+      h('div', { style: 'margin-top:8px' }, h('button', { type: 'button', class: 'btn sm', text: 'ดูหน้าสรุปผล', onclick: () => { S.student = S.student || { name: saved[0].name, cls: saved[0].cls, no: saved[0].no }; showSummary(); } }))) : null;
+    if (done && !S.student) S.student = { name: saved[0].name, cls: saved[0].cls, no: saved[0].no };
+    if (done) { nameI.value = S.student.name; clsI.value = S.student.cls; noI.value = S.student.no; [nameI, clsI, noI].forEach((i) => (i.readOnly = true)); }
+
+    const lvList = h('div', { class: 'lv-list' }, HW.levels.map((L, i) => h('div', { class: 'lv-item' }, h('span', { class: 'n', text: i + 1 }), h('div', {}, h('b', { html: L.title }), ' ', h('span', { class: 'tag ' + L.kind.toLowerCase(), text: L.kind + ' ' + sc(L.points) }), h('div', { class: 'mute', html: L.desc })))));
+
+    mount(top(), hero, h('main', {}, h('div', { class: 'wrap' },
+      savedBox,
+      h('div', { class: 'card' }, h('h2', {}, 'ก่อนเริ่ม ', h('span', { class: 'tag', text: 'กรอกข้อมูลนักเรียน' })),
+        h('div', { class: 'formgrid' },
+          h('div', { class: 'field f-name' }, h('label', { for: 'f-name', text: 'ชื่อ-สกุล' }), nameI),
+          h('div', { class: 'field' }, h('label', { for: 'f-cls', text: 'ชั้น' }), clsI),
+          h('div', { class: 'field' }, h('label', { for: 'f-no', text: 'เลขที่' }), noI)),
+        err, h('div', { class: 'row', style: 'margin-top:8px' }, startBtn, done >= 2 ? h('span', { class: 'mute', text: 'ทำครบ 2 ครั้งแล้ว — ระบบนับครั้งที่ได้คะแนนดีกว่า' }) : null)),
+      h('div', { class: 'card' }, h('h2', { text: 'ด่านในแบบฝึกนี้' }), lvList),
+      h('div', { class: 'card tint' }, h('h2', { text: 'กติกาสั้น ๆ' }), h('ul', { class: 'rules' },
+        h('li', { html: 'ทำได้ <b>2 ครั้ง</b> ระบบนับ<b>ครั้งที่ได้คะแนนดีกว่า</b> แต่ละครั้งตัวเลขในโจทย์จะเปลี่ยน' }),
+        h('li', { html: 'ตอบถูกตั้งแต่ครั้งแรกได้ <b>เต็ม</b> · ผิดแล้วมีคำใบ้ ตอบถูกในครั้งที่ 2 ได้ <b>ครึ่งหนึ่ง</b> · ผิดสองครั้งดูเฉลยได้ (ไม่ได้คะแนนข้อนั้น)' }),
+        h('li', { html: 'ทำให้จบทุกด่านแล้วจะมี<b>หน้าสรุปผล</b> แสดงชื่อ ชั้น เลขที่ และคะแนน — <b>แคปหน้าจอส่งครู</b> ตามที่ครูกำหนด' }),
+        h('li', { html: 'อย่ารีเฟรชหรือปิดหน้านี้ระหว่างทำ ความคืบหน้าของครั้งนั้นจะหาย' }))),
+      HW.reviewFile ? h('div', { class: 'row' }, h('a', { class: 'btn sm', href: (window.REVIEW_BASE || '') + HW.reviewFile, target: '_blank', rel: 'noopener', text: '📖 เปิดสื่อการสอนหัวข้อนี้' })) : null)),
+      h('div', { class: 'footer' }, 'MathKraft · ครูนิพนธ์ ไวยวรณ์ · โรงเรียนนวลนรดิศวิทยาคม รัชมังคลาภิเษก'));
+  }
+  function bestIdx() {
+    const a = S.saved.attempts;
+    if (!a.length) return -1;
+    let b = 0;
+    a.forEach((x, i) => { if (x.K + x.P > a[b].K + a[b].P + 1e-9) b = i; });
+    return b;
+  }
+
+  /* ---------- play ---------- */
+  function startAttempt() {
+    const n = S.saved.attempts.length + 1;
+    const seed = ((Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0) || 12345;
+    const run = {
+      n, seed, t0: Date.now(), cur: 0, stats: { items: 0, first: 0, hints: 0, tries: 0 },
+      levels: HW.levels.map((L, i) => {
+        const R0 = MK.rng(seed + (i + 1) * 7919);
+        const ctx = null;
+        return { def: L, R: R0, comps: null, done: false, el: null };
+      }),
+    };
+    run.ctx = { stats: run.stats };
+    S.run = run;
+    window.MK.debug = { run };
+    window.onbeforeunload = (e) => { if (S.run) { e.preventDefault(); e.returnValue = ''; return ''; } };
+    showLevel(0);
+  }
+  function pillsBar() {
+    const run = S.run;
+    return h('div', { class: 'pills noprint' }, h('div', { class: 'wrap' }, run.levels.map((l, i) => {
+      const cls = 'pill' + (i === run.cur ? ' on' : '') + (l.done ? ' done' : '') + (i > run.cur && !l.done ? ' lock' : '');
+      return h('div', { class: cls }, h('span', { class: 'n', text: l.done ? '✓' : i + 1 }), h('span', { html: l.def.short || ('ด่าน ' + (i + 1)) }));
+    })));
+  }
+  function showLevel(i) {
+    const run = S.run;
+    run.cur = i;
+    const L = run.levels[i];
+    const def = L.def;
+    if (!L.comps) {
+      const qs = def.build(L.R);
+      L.qs = qs;
+      const ctx = { stats: run.stats, R: MK.rng(run.seed + (i + 1) * 104729) };
+      L.comps = qs.map((q) => mountQ(q, ctx));
+    }
+    const nextBtn = h('button', { type: 'button', class: 'btn pri', disabled: true, text: i + 1 < run.levels.length ? 'ไปด่านถัดไป →' : 'ดูผลสรุป ✓' });
+    const vault = h('div', { class: 'vault hide' });
+    const hintEl = h('span', { class: 'hint', text: 'ทำให้ครบทุกข้อในด่านนี้ก่อน จึงไปต่อได้' });
+    const prog = h('span', { class: 'qstat' });
+    function refresh() {
+      const nd = L.comps.filter((c) => c.done).length;
+      const all = nd === L.comps.length;
+      L.done = all;
+      if (all && def.gate) {
+        const fr = levelFrac(L);
+        const pass = fr >= def.gate.min;
+        const canRetry = !pass && !L.tries;
+        L.done = pass || !canRetry;
+        vault.className = 'vault' + (L.done ? ' open' : '');
+        vault.innerHTML = '';
+        if (L.done) {
+          const code = MK.codeOf(HW.id + '|' + i + '|' + run.seed).slice(0, 4);
+          vault.append(h('span', { class: 'lk', text: '🔓' }), h('div', {}, pass ? 'ผ่านด่านแล้ว! ได้รหัสปลดล็อก ' : 'ครบ 2 รอบแล้ว ระบบเปิดด่านถัดไปให้ (คะแนนด่านนี้นับรอบที่ดีกว่า) · รหัส ', h('code', { text: code })));
+        } else {
+          vault.append(h('span', { class: 'lk', text: '🔒' }), h('div', {}, 'ด่านนี้ยังไม่ปลดล็อก — ต้องทำถูกอย่างน้อย ' + Math.round(def.gate.min * 100) + '% (ตอนนี้ ' + Math.round(fr * 100) + '%) ลองด่านนี้ใหม่ด้วยโจทย์ชุดใหม่ได้ 1 ครั้ง ระบบนับรอบที่ได้คะแนนดีกว่า '),
+            h('button', { type: 'button', class: 'btn sm', text: '🔁 ลองด่านนี้ใหม่', onclick: () => { L.bestFrac = Math.max(L.bestFrac || 0, fr); if (def.split) { const sf = splitFrac(L); L.bestSplit = { K: Math.max((L.bestSplit || {}).K || 0, sf.K), P: Math.max((L.bestSplit || {}).P || 0, sf.P) }; } L.tries = (L.tries || 0) + 1; L.R = MK.rng(run.seed + (i + 1) * 7919 + 31 * L.tries); L.comps = null; showLevel(i); } }));
+        }
+      } else vault.classList.add('hide');
+      nextBtn.disabled = !L.done;
+      hintEl.textContent = L.done ? 'ครบแล้ว! กดไปต่อได้เลย' : all ? 'ด่านนี้ยังไม่ปลดล็อก' : 'ทำแล้ว ' + nd + ' / ' + L.comps.length + ' ข้อ — ทำให้ครบก่อนจึงไปต่อได้';
+      document.querySelectorAll('.pills').forEach((p) => p.replaceWith(pillsBar()));
+    }
+    nextBtn.addEventListener('click', () => {
+      if (i + 1 < run.levels.length) showLevel(i + 1); else finishAttempt();
+    });
+    const head = h('div', { class: 'lv-head' },
+      h('h2', {}, h('span', { html: def.title }), h('span', { class: 'tag ' + (def.split ? '' : def.kind.toLowerCase()), text: def.split ? 'K ' + sc(def.split.K) + ' + P ' + sc(def.split.P) + ' คะแนน' : def.kind + ' ' + sc(def.points) + ' คะแนน' })),
+      def.intro ? R(def.intro, 'p') : null);
+    const cards = L.comps.map((c, k) => {
+      const done = () => card.classList.toggle('done', c.done);
+      const stat = h('span', { class: 'qstat', text: '' });
+      const card = h('div', { class: 'qcard' }, h('div', { class: 'qh' }, h('span', { class: 'qno', text: 'ข้อ ' + (k + 1) }), h('span', { class: 'qtype', text: TYPE_LABEL[c.q.type] || '' }), stat), c.el);
+      const prev = c.onDone;
+      c.onDone = () => { if (prev) prev(); stat.textContent = '✓ เสร็จแล้ว'; done(); refresh(); };
+      if (c.done) { stat.textContent = '✓ เสร็จแล้ว'; done(); }
+      return card;
+    });
+    mount(top({ timer: true }), pillsBar(), h('main', {}, h('div', { class: 'wrap' }, head, def.ask ? h('div', { class: 'ask' }, h('b', { text: 'โจทย์ชวนคิด' }), R(def.ask, 'div')) : null, cards, vault, h('div', { class: 'nav' }, hintEl, nextBtn))));
+    refresh();
+    const tick = () => { const t = $('#timer'); if (t) t.textContent = mmss((Date.now() - run.t0) / 1000); };
+    tick(); timerH = setInterval(tick, 1000);
+  }
+
+  function levelFrac(l) {
+    const wsum = l.comps.reduce((s, c) => s + c.weight, 0);
+    return l.comps.reduce((s, c) => s + c.weight * c.credit, 0) / wsum;
+  }
+  function flatComps(cs) { const o = []; cs.forEach((c) => { if (c.parts) o.push(...flatComps(c.parts)); else o.push(c); }); return o; }
+  // per-kind fraction for levels that mix K and P parts (def.split = {K, P}); parts carry q.sk = 'K' | 'P'
+  function splitFrac(l) {
+    const res = { K: 0, P: 0 };
+    ['K', 'P'].forEach((k) => {
+      const cs = flatComps(l.comps).filter((c) => c.q.sk === k);
+      const w = cs.reduce((a, c) => a + c.weight, 0);
+      res[k] = w ? cs.reduce((a, c) => a + c.weight * c.credit, 0) / w : 0;
+    });
+    return res;
+  }
+  function finishAttempt() {
+    const run = S.run;
+    const secs = Math.round((Date.now() - run.t0) / 1000);
+    let K = 0, P = 0;
+    const levels = run.levels.map((l) => {
+      if (l.def.split) {
+        const sf = splitFrac(l), bs = l.bestSplit || {};
+        const fK = Math.max(bs.K || 0, sf.K), fP = Math.max(bs.P || 0, sf.P);
+        const eK = l.def.split.K * fK, eP = l.def.split.P * fP;
+        K += eK; P += eP;
+        const tot = l.def.split.K + l.def.split.P;
+        return { id: l.def.short || '', title: l.def.title, kind: 'KP', points: tot, earned: MK.round(eK + eP, 4), earnedK: MK.round(eK, 4), earnedP: MK.round(eP, 4), pct: Math.round(((eK + eP) / tot) * 100), skill: l.def.skill || '', review: l.def.review || '' };
+      }
+      const frac = Math.max(l.bestFrac || 0, levelFrac(l));
+      const earned = l.def.points * frac;
+      if (l.def.kind === 'K') K += earned; else P += earned;
+      return { id: l.def.short || '', title: l.def.title, kind: l.def.kind, points: l.def.points, earned: MK.round(earned, 4), pct: Math.round(frac * 100), skill: l.def.skill || '', review: l.def.review || '' };
+    });
+    K = MK.round(K, 2); P = MK.round(P, 2);
+    const a = { n: run.n, seed: run.seed, name: S.student.name, cls: S.student.cls, no: S.student.no, at: Date.now(), secs, K, P, levels, stats: run.stats };
+    a.code = MK.codeOf([HW.id, a.name, a.cls, a.no, K.toFixed(2), P.toFixed(2), a.n].join('|'));
+    S.saved.attempts.push(a);
+    S.saved.student = S.student;
+    save(S.saved);
+    S.run = null;
+    window.onbeforeunload = null;
+    showSummary(S.saved.attempts.length - 1, true);
+  }
+
+  /* ---------- summary ---------- */
+  function gradeOf(p) {
+    if (p >= 85) return { g: 'g4', t: 'ยอดเยี่ยม', msg: 'เข้าใจเนื้อหาส่วนนี้ได้ดีมาก ไปต่อบทถัดไปได้อย่างมั่นใจ' };
+    if (p >= 70) return { g: 'g3', t: 'ดี', msg: 'เข้าใจหลักการสำคัญแล้ว ทบทวนจุดที่พลาดอีกนิดจะเต็มขึ้น' };
+    if (p >= 50) return { g: 'g2', t: 'พอใช้', msg: 'เริ่มจับหลักได้แล้ว แต่ยังมีจุดที่ควรทบทวนซ้ำ' };
+    return { g: 'g1', t: 'ควรทบทวน', msg: 'ลองกลับไปอ่านสื่อการสอนหัวข้อนี้อีกรอบ แล้วทำแบบฝึกครั้งต่อไปอีกครั้ง' };
+  }
+  function showSummary(idx, fresh) {
+    const atts = S.saved.attempts;
+    if (idx == null) idx = bestIdx();
+    const a = atts[idx];
+    const best = bestIdx();
+    const counted = atts[best];
+    const maxK = HW.K, maxP = HW.P, max = maxK + maxP;
+    const tot = a.K + a.P;
+    const pct = Math.round((tot / max) * 100);
+    const gr = gradeOf(pct);
+    const when = new Date(a.at);
+    const dstr = when.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + when.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    const C = 2 * Math.PI * 54;
+    const ring = h('div', { class: 'ring' });
+    ring.innerHTML = '<svg viewBox="0 0 128 128"><circle cx="64" cy="64" r="54" fill="none" stroke="rgba(22,32,91,.12)" stroke-width="14"/><circle cx="64" cy="64" r="54" fill="none" stroke="var(--accent)" stroke-width="14" stroke-linecap="round" stroke-dasharray="' + (C * pct / 100).toFixed(1) + ' ' + C.toFixed(1) + '"/></svg><div class="tx"><div><b>' + sc(tot) + '</b><br><span>จาก ' + sc(max) + ' คะแนน</span></div></div>';
+
+    const strengths = a.levels.filter((l) => l.pct >= 80);
+    const weak = a.levels.filter((l) => l.pct < 80);
+    const evl = h('div', { class: 'card evl' }, h('h2', {}, 'ประเมินสรุปแบบฝึกนี้ ', h('span', { class: 'grade ' + gr.g, text: gr.t })),
+      h('p', { text: gr.msg + ' (ได้ ' + pct + '% ของคะแนนแบบฝึก)' }),
+      h('p', { class: 'mute', html: 'ข้อย่อยที่ถูกตั้งแต่ครั้งแรก <b>' + a.stats.first + ' / ' + a.stats.items + '</b> · ใช้คำใบ้ <b>' + a.stats.hints + '</b> ครั้ง · ใช้เวลา <b>' + mmss(a.secs) + '</b> นาที' }),
+      strengths.length ? h('div', {}, h('b', { text: '✓ ทำได้ดี' }), h('ul', {}, strengths.map((l) => h('li', { html: l.skill || l.title })))) : null,
+      weak.length ? h('div', {}, h('b', { text: '↻ ควรทบทวน / ฝึกเพิ่ม' }), h('ul', {}, weak.map((l) => h('li', { html: (l.skill || l.title) + (l.review ? ' <span class="mute">→ ' + l.review + '</span>' : '') })))) : h('p', { html: '<b>ทำได้ดีครบทุกด่าน</b> ยังไม่มีหัวข้อที่ต้องทบทวนเพิ่ม' }));
+
+    const rows = a.levels.map((l) => h('tr', {},
+      h('td', { html: l.title }), h('td', {}, h('span', { class: 'tag ' + (l.kind.length === 1 ? l.kind.toLowerCase() : ''), text: l.kind === 'KP' ? 'K+P' : l.kind })),
+      h('td', {}, h('div', { class: 'barx' }, h('i', { style: 'width:' + l.pct + '%' }))),
+      h('td', { class: 'num', text: sc(l.earned) + ' / ' + sc(l.points) })));
+
+    const attBox = h('div', { class: 'attempts' }, atts.map((x, i) => h('span', { class: 'att' + (i === best ? ' best' : ''), text: 'ครั้งที่ ' + x.n + ': ' + sc(x.K + x.P) + ' / ' + sc(max) + (i === best ? '  ← นับคะแนนครั้งนี้' : '') })));
+
+    const copyTxt = () => [
+      HW.id + ' ' + HW.title + ' (ค31202 ม.4)',
+      'ชื่อ: ' + a.name + ' · ชั้น: ' + a.cls + ' · เลขที่: ' + a.no,
+      'ครั้งที่ ' + a.n + ' · K ' + sc(a.K) + '/' + sc(maxK) + (maxP ? ' · P ' + sc(a.P) + '/' + sc(maxP) : '') + ' · รวม ' + sc(tot) + '/' + sc(max),
+      'รหัสยืนยัน: ' + a.code,
+    ].join('\n');
+    const copyBtn = h('button', { type: 'button', class: 'btn sm', text: '📋 คัดลอกผลสรุป', onclick: () => {
+      const t = copyTxt();
+      const ok = () => toast('คัดลอกแล้ว');
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, () => fallbackCopy(t, ok));
+      else fallbackCopy(t, ok);
+    } });
+    const canRetry = atts.length < 2;
+
+    const kpIsViewing = idx !== best;
+    mount(top(), h('main', {}, h('div', { class: 'wrap' },
+      fresh ? h('div', { class: 'ask noprint' }, h('b', { text: 'เสร็จแล้ว!' }), h('div', { text: 'นี่คือหน้าสรุปผลของครั้งที่ ' + a.n + ' — แคปหน้าจอทั้งหน้านี้ส่งครูได้เลย' })) : null,
+      h('div', { class: 'card' }, h('div', { class: 'sum-head' },
+        h('div', {}, h('h2', { html: HW.id + ' · ' + HW.title }),
+          h('div', { class: 'stu' }, h('b', { text: 'ชื่อ-สกุล' }), h('span', { class: 'v', id: 's-name', text: a.name }), h('b', { text: 'ชั้น' }), h('span', { class: 'v', id: 's-cls', text: a.cls }), h('b', { text: 'เลขที่' }), h('span', { class: 'v', id: 's-no', text: a.no }), h('b', { text: 'ทำเมื่อ' }), h('span', { text: dstr }), h('b', { text: 'ครั้งที่' }), h('span', { text: a.n + (kpIsViewing ? '' : ' (นับคะแนน)') }))),
+        ring),
+        h('div', { class: 'kp' },
+          h('div', { class: 'c' }, h('small', { text: 'K ด้านความรู้' }), h('b', { id: 's-k' }, sc(a.K), h('i', { text: ' / ' + sc(maxK) }))),
+          maxP ? h('div', { class: 'c' }, h('small', { text: 'P ด้านทักษะกระบวนการ' }), h('b', { id: 's-p' }, sc(a.P), h('i', { text: ' / ' + sc(maxP) }))) : null,
+          h('div', { class: 'c' }, h('small', { text: 'รวม' }), h('b', { id: 's-t' }, sc(tot), h('i', { text: ' / ' + sc(max) })))),
+        kpIsViewing ? h('p', { class: 'mute', html: 'หมายเหตุ: ครั้งนี้ไม่ใช่ครั้งที่นับคะแนน (นับครั้งที่ ' + counted.n + ' = ' + sc(counted.K + counted.P) + ')' }) : null),
+      evl,
+      h('div', { class: 'card' }, h('h2', { text: 'คะแนนรายด่าน' }), h('table', { class: 'lvtab' }, h('thead', {}, h('tr', {}, h('th', { text: 'ด่าน' }), h('th', { text: 'ประเภท' }), h('th', { text: 'ทำได้' }), h('th', { text: 'คะแนน' }))), h('tbody', {}, rows))),
+      h('div', { class: 'card' }, h('h2', { text: 'ผลทั้งหมดและรหัสยืนยัน' }), attBox,
+        h('p', {}, 'รหัสยืนยันของครั้งนี้ ', h('span', { class: 'code', id: 's-code', text: a.code })),
+        h('div', { class: 'shot noprint', html: '📸 <b>ส่งงาน:</b> แคปหน้าจอหน้านี้ให้เห็น ชื่อ ชั้น เลขที่ คะแนน และรหัสยืนยัน แล้วส่งใน Google Classroom ตามที่ครูกำหนด' }),
+        h('div', { class: 'row noprint', style: 'margin-top:14px' },
+          canRetry ? h('button', { type: 'button', class: 'btn pri', text: 'ทำครั้งที่ 2 (ตัวเลขชุดใหม่) →', onclick: () => { showIntroForRetry(); } }) : null,
+          atts.length > 1 && idx !== best ? h('button', { type: 'button', class: 'btn sm', text: 'ดูครั้งที่นับคะแนน', onclick: () => showSummary(best) }) : null,
+          atts.length > 1 && idx === best ? h('button', { type: 'button', class: 'btn sm', text: 'ดูครั้งอื่น', onclick: () => showSummary(atts.findIndex((_, i) => i !== best)) }) : null,
+          copyBtn,
+          h('button', { type: 'button', class: 'btn sm', text: '🖨️ พิมพ์ / บันทึก PDF', onclick: () => window.print() }),
+          HW.reviewFile ? h('a', { class: 'btn sm', href: (window.REVIEW_BASE || '') + HW.reviewFile, target: '_blank', rel: 'noopener', text: '📖 ทบทวนที่สื่อการสอน' }) : null))
+    )), h('div', { class: 'footer' }, 'MathKraft · ค31202 คณิตศาสตร์เพิ่มเติม 2 · ม.4 · ' + HW.id));
+  }
+  function showIntroForRetry() { startAttempt(); }
+  function fallbackCopy(t, ok) {
+    const ta = h('textarea', { style: 'position:fixed;left:-9999px' });
+    ta.value = t; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); ok(); } catch (e) { toast('คัดลอกไม่ได้ — แคปหน้าจอแทนได้เลย'); }
+    ta.remove();
+  }
+
+  /* ---------- boot ---------- */
+  function boot() {
+    setUnit();
+    const sv = loadSaved();
+    if (sv && sv.attempts) S.saved = sv;
+    if (S.saved.student) S.student = S.saved.student;
+    window.MK.S = S;
+    window.MK.ui = { h, R, rich, mountQ, mkChip };
+    showIntro();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -12,8 +12,14 @@
 2. **สั่งงาน Claude ด้วยหัวข้อวิชาที่ต้องการ** เช่น:
    > *"ช่วยสร้างแบบฝึกหัด MathKraft เรื่อง 'ฟังก์ชันเอกซ์โพเนนเชียล' ระดับชั้น ม.4 จำนวน 3 ด่าน (วอร์มอัป, คำนวณ, ทักษะการวิเคราะห์) ตามมาตรฐานนี้"*
 3. **นำโค้ดที่ Claude สร้างไปใช้งาน:**
-   - **แบบที่ 1 (แนะนำ):** บันทึกเป็นไฟล์ `HW-xx_ชื่อบท.js` แล้วนำไปใส่ในโฟลเดอร์ `content/` แล้วรัน `node scripts/build-hw.js --config course.json`
-   - **แบบที่ 2 (ไม่ต้องใช้ Node.js):** เปิดไฟล์ `templates/standalone-worksheet.html` แล้วนำโค้ด JavaScript ที่ได้ไปวางแทนที่ในแท็ก `<script id="mathkraft-content">...</script>` จากนั้นดับเบิลคลิกเปิดบนเว็บเบราว์เซอร์ใดก็ได้ทันที!
+   - **แบบที่ 1 (ใช้กับ HTML Template โดยตรง — ง่ายและเหมือนเป๊ะที่สุด ✨):**
+     - เปิดไฟล์ [`templates/template.html`](template.html) หรือ [`templates/HW-template.html`](HW-template.html)
+     - นำโค้ด JavaScript ที่ Claude ส่งคืนมา ไปวางแทนที่ในแท็ก `<script id="mathkraft-content">...</script>`
+     - ดับเบิลคลิกเปิดไฟล์ด้วยเว็บเบราว์เซอร์ใดก็ได้ จะได้หน้าตาแบบฝึกหัดที่**เหมือนคณิตเพิ่มเติมเป๊ะ 100%** ทันที ไม่ต้องติดตั้ง Node.js!
+   - **แบบที่ 2 (ให้ Claude ส่งออกเป็นไฟล์ HTML ทั้งไฟล์จบในรอบเดียว):**
+     - หากต้องการให้ Claude เขียนโค้ด HTML จบทั้งไฟล์ในคำตอบเดียว ให้แนบไฟล์ [`templates/template-cdn.html`](template-cdn.html) (ไฟล์ขนาดเบา ~130 KB ไม่ติดข้อจำกัด Token ของ Claude)
+   - **แบบที่ 3 (ระบบ Build ด้วย Node.js):**
+     - บันทึกเป็นไฟล์ `HW-xx_ชื่อบท.js` ในโฟลเดอร์ `content/` แล้วรัน `node scripts/build-hw.js --config course.json`
 
 ---
 

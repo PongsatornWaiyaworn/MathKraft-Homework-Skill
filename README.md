@@ -46,9 +46,11 @@ mathkraft-hw-skill/
 ├── .gitignore
 │
 ├── templates/                     # 🌟 โฟลเดอร์เทมเพลตสำหรับใช้งานทันที & Claude
-│   ├── HW-template.js             # แม่แบบโค้ด JS สำหรับเขียนโจทย์ (มีตัวอย่างครบทุกรูปแบบ)
-│   ├── standalone-worksheet.html  # ไฟล์ HTML สำเร็จรูป เปิดในเบราว์เซอร์ได้ทันที ไม่ต้องลง Node
-│   ├── course.json                # แม่แบบการตั้งค่าคอร์สสำหรับบิลด์
+│   ├── template.html              # 👑 ไฟล์ HTML แทมเพลตหลัก (Offline 100% สไตล์คณิตเพิ่มเติมเป๊ะ)
+│   ├── HW-template.html           # (ชื่อสำรองเหมือน template.html ดับเบิลคลิกเปิดได้ทันที)
+│   ├── template-cdn.html          # ไฟล์ HTML แทมเพลตขนาดกะทัดรัด (สำหรับให้ Claude เขียนจบทั้งไฟล์)
+│   ├── HW-template.js             # แม่แบบโค้ด JS สำหรับเขียนโจทย์ (มีตัวอย่างครบทุก 7 รูปแบบ)
+│   ├── course.json                # แม่แบบการตั้งค่าคอร์สสำหรับบิลด์ด้วย CLI
 │   └── CLAUDE_PROMPT.md           # คำสั่ง System Prompt สำหรับสั่งงาน Claude ให้สร้างโจทย์
 │
 ├── scripts/
@@ -80,8 +82,9 @@ mathkraft-hw-skill/
 3. พิมพ์สั่งโจทย์ที่ต้องการ เช่น:
    > *"สร้างแบบฝึกหัด MathKraft เรื่อง ลำดับเรขาคณิต ม.5 จำนวน 3 ด่านตามมาตรฐานนี้"*
 4. นำโค้ด JavaScript ที่ Claude สร้างไปใช้งาน:
-   - **ทางเลือก A (ไม่ต้องลงโปรแกรม):** เปิดไฟล์ [`templates/standalone-worksheet.html`](templates/standalone-worksheet.html) แล้วนำโค้ดไปวางในแท็ก `<script id="mathkraft-content">` จากนั้นดับเบิลคลิกเปิดไฟล์ด้วยเบราว์เซอร์ได้ทันที!
-   - **ทางเลือก B (ระบบบิลด์อัตโนมัติ):** บันทึกเป็นไฟล์ `HW-xx.js` ในโฟลเดอร์ `content/` แล้วสั่งบิลด์ด้วย Node.js
+   - **ทางเลือก A (ไม่ต้องลงโปรแกรม — เหมือนเป๊ะ 100%):** เปิดไฟล์ [`templates/template.html`](templates/template.html) (หรือ `HW-template.html`) แล้วนำโค้ดไปวางในแท็ก `<script id="mathkraft-content">` จากนั้นดับเบิลคลิกเปิดไฟล์ด้วยเบราว์เซอร์ได้ทันที!
+   - **ทางเลือก B (ให้ Claude สร้าง HTML ทั้งไฟล์):** ใช้ [`templates/template-cdn.html`](templates/template-cdn.html) ที่มีขนาดเบา ส่งให้ Claude แล้วขอไฟล์ HTML ทั้งหมดกลับมาได้ทันที
+   - **ทางเลือก C (ระบบบิลด์อัตโนมัติ):** บันทึกเป็นไฟล์ `HW-xx.js` ในโฟลเดอร์ `content/` แล้วสั่งบิลด์ด้วย Node.js
 
 ---
 
