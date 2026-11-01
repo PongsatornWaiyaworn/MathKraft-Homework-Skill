@@ -36,6 +36,7 @@ assert('templates/template.html exists', fs.existsSync(path.join(ROOT, 'template
 assert('templates/HW-template.html exists', fs.existsSync(path.join(ROOT, 'templates', 'HW-template.html')));
 assert('templates/template-cdn.html exists', fs.existsSync(path.join(ROOT, 'templates', 'template-cdn.html')));
 assert('templates/CLAUDE_PROMPT.md exists', fs.existsSync(promptPath));
+assert('CLAUDE.md exists', fs.existsSync(path.join(ROOT, 'CLAUDE.md')));
 
 // 2. KaTeX equation parsing in tail.tpl.html
 const tailContent = fs.readFileSync(tailPath, 'utf8');
