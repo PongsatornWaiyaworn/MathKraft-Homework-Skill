@@ -78,11 +78,16 @@ function readMeta(js, file) {
 function buildOne(cfg, contentFile, headTpl, tailTpl, total) {
   const js = fs.readFileSync(contentFile, 'utf8');
   const meta = readMeta(js, path.basename(contentFile));
+  const deptUrl = cfg.deptUrl || '/คณิตเพิ่มเติม/';
+  const deptName = cfg.deptName || 'คณิตศาสตร์เพิ่มเติม';
+  const courseUrl = cfg.courseUrl || '/คณิตเพิ่มเติม/ม4/2/';
+  const semester = cfg.semester || 'เทอม 2';
   const vars = {
     TITLE: escText(`${meta.id} ${meta.title} · ${cfg.courseCode} ${cfg.level} · MathKraft`),
     COURSE_CODE: cfg.courseCode, COURSE_NAME: cfg.courseName, LEVEL: cfg.level,
     DEFAULT_CLASS: cfg.defaultClass, STORAGE_ID: cfg.storageId, REVIEW_BASE: cfg.reviewBase,
     TOTAL: String(total),
+    DEPT_URL: deptUrl, DEPT_NAME: deptName, COURSE_URL: courseUrl, SEMESTER: semester
   };
   const html = fillTemplate(headTpl, vars) + '<script>' + js + '</script>\n' + fillTemplate(tailTpl, vars);
   return { html, js, meta };
