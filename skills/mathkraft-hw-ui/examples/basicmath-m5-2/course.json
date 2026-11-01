@@ -1,0 +1,15 @@
+{
+  "courseCode": "ค32102",
+  "courseName": "คณิตศาสตร์พื้นฐาน 4",
+  "level": "ม.5",
+  "defaultClass": "ม.5/1",
+  "storageId": "32102",
+  "deptUrl": "/คณิตพื้นฐาน/",
+  "deptName": "คณิตศาสตร์พื้นฐาน",
+  "courseUrl": "/คณิตพื้นฐาน/ม5/2/",
+  "semester": "เทอม 2",
+  "total": 13,
+  "reviewBase": "",
+  "content": "content",
+  "out": "dist"
+}

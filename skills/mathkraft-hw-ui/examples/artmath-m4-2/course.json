@@ -1,0 +1,15 @@
+{
+  "courseCode": "ค31204",
+  "courseName": "คณิตศาสตร์ศิลป์ 2",
+  "level": "ม.4",
+  "defaultClass": "ม.4/1",
+  "storageId": "31204",
+  "deptUrl": "/คณิตศิลป์/",
+  "deptName": "คณิตศาสตร์ศิลป์",
+  "courseUrl": "/คณิตศิลป์/ม4/2/",
+  "semester": "เทอม 2",
+  "total": 14,
+  "reviewBase": "",
+  "content": "content",
+  "out": "dist"
+}
