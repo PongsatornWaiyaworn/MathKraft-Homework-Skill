@@ -28,8 +28,8 @@
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/PongsatornWaiyaworn/athKraft-Homework-Skill.git
-cd athKraft-Homework-Skill
+git clone https://github.com/PongsatornWaiyaworn/MathKraft-Homework-Skill.git
+cd MathKraft-Homework-Skill
 
 # 2. ทดสอบความพร้อมของระบบ
 npm test
