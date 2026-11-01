@@ -37,8 +37,11 @@
   }
   function rich(s) {
     return String(s == null ? '' : s)
+      .replace(/\$\$([\s\S]+?)\$\$/g, (m, t) => km(t, true))
       .replace(/\\\[([\s\S]+?)\\\]/g, (m, t) => km(t, true))
-      .replace(/\\\(([\s\S]+?)\\\)/g, (m, t) => km(t, false));
+      .replace(/\\\(([\s\S]+?)\\\)/g, (m, t) => km(t, false))
+      .replace(/(?<!\\)\$([^\$\n]+?)(?<!\\)\$/g, (m, t) => km(t, false))
+      .replace(/\\\$/g, '$');
   }
   function R(html, tag, cls) { return h(tag || 'span', { class: cls || '', html }); }
   const $ = (s, r) => (r || document).querySelector(s);
@@ -305,7 +308,7 @@
         test: () => MK.matchAnswer(input.value, f),
         onRight: () => { input.classList.remove('no'); input.classList.add('ok'); input.readOnly = true; },
         onWrong: () => { input.classList.add('no'); },
-        reveal: () => { input.classList.remove('no'); input.readOnly = true; rev.textContent = 'เฉลย: ' + ansText(f); rev.classList.remove('hide'); },
+        reveal: () => { input.classList.remove('no'); input.readOnly = true; rev.innerHTML = 'เฉลย: ' + rich(ansText(f)); rev.classList.remove('hide'); },
       };
     });
     box.insertBefore(R(q.q, 'div', 'qbody'), box.firstChild);
@@ -398,7 +401,7 @@
     const rowEl = {};
     const selEl = {}, setters = {}, wraps = {};
     q.steps.forEach((s, i) => {
-      const sl = h('select', { 'aria-label': 'เลือกเหตุผลของขั้นตอน' }, h('option', { value: '', text: '— เลือกเหตุผลของขั้นตอนนี้ —' }), q.reasons.map((r, ri) => h('option', { value: ri, html: r.replace(/\\\(|\\\)/g, '') })));
+      const sl = h('select', { 'aria-label': 'เลือกเหตุผลของขั้นตอน' }, h('option', { value: '', text: '— เลือกเหตุผลของขั้นตอนนี้ —' }), q.reasons.map((r, ri) => h('option', { value: ri, html: r.replace(/\\\(|\\\)/g, '').replace(/(?<!\\)\$/g, '') })));
       // option text cannot render KaTeX; strip delimiters for readability
       const cap = h('div', { class: 'mute', style: 'font-size:.82em;margin-top:3px' });
       const setSel = (v) => { sel[i] = v; sl.value = v == null ? '' : v; cap.innerHTML = v == null ? '' : rich(q.reasons[v]); };
@@ -475,9 +478,9 @@
       b.addEventListener('click', () => { if (b.disabled) return; pick = i; lines.forEach((x, j) => x.classList.toggle('sel', j === i)); });
       return b;
     });
-    const causeSel = h('select', { 'aria-label': 'เลือกสาเหตุ' }, h('option', { value: '', text: '— เลือกสาเหตุที่ผิด —' }), q.causes.map((t, i) => h('option', { value: i, text: t.replace(/\\\(|\\\)/g, '') })));
+    const causeSel = h('select', { 'aria-label': 'เลือกสาเหตุ' }, h('option', { value: '', text: '— เลือกสาเหตุที่ผิด —' }), q.causes.map((t, i) => h('option', { value: i, text: t.replace(/\\\(|\\\)/g, '').replace(/(?<!\\)\$/g, '') })));
     const causeCap = h('div', { class: 'mute', style: 'font-size:.84em;margin-top:3px' });
-    causeSel.addEventListener('change', () => { causeCap.textContent = causeSel.value === '' ? '' : q.causes[+causeSel.value].replace(/\\\(|\\\)/g, ''); });
+    causeSel.addEventListener('change', () => { causeCap.innerHTML = causeSel.value === '' ? '' : rich(q.causes[+causeSel.value]); });
     const inp = h('input', { class: 'num-in', type: 'text', inputmode: 'text', autocomplete: 'off', placeholder: 'พิมพ์คำตอบที่ถูกต้อง' });
     const fld = q.fix;
     const rev = h('span', { class: 'rev hide' });
@@ -491,7 +494,7 @@
         onRight: () => { causeSel.disabled = true; }, onWrong: () => {}, reveal: () => { causeSel.value = q.cause; causeSel.disabled = true; } },
       { weight: 1, filled: () => inp.value.trim() !== '', test: () => MK.matchAnswer(inp.value, fld),
         onRight: () => { inp.classList.add('ok'); inp.readOnly = true; }, onWrong: () => inp.classList.add('no'),
-        reveal: () => { inp.readOnly = true; inp.classList.remove('no'); rev.textContent = 'เฉลย: ' + ansText(fld); rev.classList.remove('hide'); } },
+        reveal: () => { inp.readOnly = true; inp.classList.remove('no'); rev.innerHTML = 'เฉลย: ' + rich(ansText(fld)); rev.classList.remove('hide'); } },
     ];
     box.append(R(q.q, 'div', 'qbody'), h('div', { class: 'subq' }, h('div', { class: 'sl', text: 'ขั้นที่ 1 · คลิกบรรทัดที่ผิด' }), lines),
       h('div', { class: 'subq' }, h('div', { class: 'sl', text: 'ขั้นที่ 2 · เลือกสาเหตุ' }), h('div', { class: 'cause' }, causeSel, causeCap)),

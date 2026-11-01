@@ -1,0 +1,27 @@
+{
+  "name": "mathkraft-hw-skill",
+  "version": "2.0.0",
+  "description": "Interactive Math Homework Engine & Skill for Antigravity, Claude, and Modern Browsers with Retro-Neobrutalism Design System",
+  "main": "skills/mathkraft-hw-ui/scripts/build-hw.js",
+  "bin": {
+    "mathkraft-hw": "./skills/mathkraft-hw-ui/scripts/build-hw.js"
+  },
+  "scripts": {
+    "build": "node skills/mathkraft-hw-ui/scripts/build-hw.js",
+    "test": "node scripts/verify_skill.js"
+  },
+  "keywords": [
+    "mathkraft",
+    "antigravity-skill",
+    "interactive-worksheet",
+    "mathematics-education",
+    "retro-neobrutalism",
+    "katex",
+    "claude-skill"
+  ],
+  "author": "Kru Niphon Waiyaworn (MathKraft)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
