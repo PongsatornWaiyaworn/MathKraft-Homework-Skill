@@ -1,10 +1,10 @@
-# MathKraft Homework Skill 📐
+# MathKraft Homework Skill
 
 ชุดเครื่องมือและแม่แบบสร้างแบบฝึกหัดคณิตศาสตร์ออนไลน์เชิงโต้ตอบ (Interactive Homework Engine) สไตล์ Retro-Neobrutalism มาตรฐานโรงเรียนนวลนรดิศวิทยาคม รัชมังคลาภิเษก
 
 ---
 
-## 📦 วิธีการติดตั้งและใช้งาน (Installation)
+## วิธีการติดตั้งและใช้งาน (Installation)
 
 ### 1. ติดตั้งเป็น Antigravity Skill
 คัดลอกโฟลเดอร์ `skills/mathkraft-hw-ui` ไปวางในตำแหน่งที่ต้องการ:
@@ -28,8 +28,8 @@
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/<your-username>/mathkraft-hw-skill.git
-cd mathkraft-hw-skill
+git clone https://github.com/PongsatornWaiyaworn/athKraft-Homework-Skill.git
+cd athKraft-Homework-Skill
 
 # 2. ทดสอบความพร้อมของระบบ
 npm test
