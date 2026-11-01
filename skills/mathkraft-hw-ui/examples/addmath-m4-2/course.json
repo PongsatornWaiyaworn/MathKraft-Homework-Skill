@@ -1,0 +1,10 @@
+{
+  "courseCode": "ค31202",
+  "courseName": "คณิตศาสตร์เพิ่มเติม 2",
+  "level": "ม.4",
+  "defaultClass": "ม.4/1",
+  "storageId": "31202",
+  "reviewBase": "../สื่อการสอน-HTML/",
+  "content": "content",
+  "out": "dist"
+}

@@ -1,0 +1,969 @@
+<script>/* ===== MathKraft HW engine — UI ===== */
+(function () {
+  'use strict';
+  const MK = window.MK;
+  const HW = window.HW;
+  const Q = MK.Q;
+
+  /* ---------- tiny DOM helpers ---------- */
+  function h(tag, props) {
+    const el = document.createElement(tag);
+    if (props) {
+      for (const k in props) {
+        const v = props[k];
+        if (v == null || v === false) continue;
+        if (k === 'class') el.className = v;
+        else if (k === 'html') el.innerHTML = rich(v);
+        else if (k === 'text') el.textContent = v;
+        else if (k === 'style') el.style.cssText = v;
+        else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
+        else el.setAttribute(k, v === true ? '' : v);
+      }
+    }
+    for (let i = 2; i < arguments.length; i++) add(el, arguments[i]);
+    return el;
+  }
+  function add(el, c) {
+    if (c == null || c === false) return;
+    if (Array.isArray(c)) c.forEach((x) => add(el, x));
+    else if (c instanceof Node) el.appendChild(c);
+    else el.appendChild(document.createTextNode(String(c)));
+  }
+  function km(t, disp) {
+    try {
+      if (window.katex) return window.katex.renderToString(t, { displayMode: disp, throwOnError: false, strict: 'ignore' });
+    } catch (e) { /* fall through */ }
+    return t;
+  }
+  function rich(s) {
+    return String(s == null ? '' : s)
+      .replace(/\\\[([\s\S]+?)\\\]/g, (m, t) => km(t, true))
+      .replace(/\\\(([\s\S]+?)\\\)/g, (m, t) => km(t, false));
+  }
+  function R(html, tag, cls) { return h(tag || 'span', { class: cls || '', html }); }
+  const $ = (s, r) => (r || document).querySelector(s);
+  const mmss = (s) => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  const sc = (x) => String(+(+x).toFixed(2)); // 1.5 -> "1.5", 2 -> "2"
+  const safe = (fn, d) => { try { return fn(); } catch (e) { return d; } };
+  function toast(msg) {
+    const t = h('div', { class: 'toast', text: msg });
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2200);
+  }
+
+  /* ---------- storage ---------- */
+  const KEY = 'mk-{{STORAGE_ID}}-' + HW.id;
+  const SKEY = 'mk-{{STORAGE_ID}}-student';
+  function loadSaved() { return safe(() => JSON.parse(localStorage.getItem(KEY)) || null, null); }
+  function save(o) { safe(() => localStorage.setItem(KEY, JSON.stringify(o))); }
+  function loadStudent() { return safe(() => JSON.parse(localStorage.getItem(SKEY)) || null, null); }
+  function saveStudent(s) { safe(() => localStorage.setItem(SKEY, JSON.stringify(s))); }
+
+  /* ---------- state ---------- */
+  const S = {
+    student: null,
+    saved: { attempts: [] }, // completed attempts
+    run: null, // running attempt
+    fs: 1,
+  };
+  const app = document.getElementById('app');
+  let timerH = null;
+
+  /* =====================================================================
+     DRAG / TAP chips
+     ===================================================================== */
+  const dnd = { sel: null, scope: null };
+  function clearSel() {
+    if (dnd.sel) dnd.sel.el.classList.remove('sel');
+    dnd.sel = null;
+    document.querySelectorAll('.tap-ready').forEach((z) => z.classList.remove('tap-ready'));
+  }
+  function mkChip(html, key, scope) {
+    const el = h('button', { type: 'button', class: 'chip' }, h('span', { class: 'cb', html }));
+    const chip = { el, key, zone: null, locked: false, scope };
+    el._chip = chip;
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (e.detail === 0) toggleSel(chip); // keyboard activation
+    });
+    el.addEventListener('pointerdown', (e) => {
+      if (chip.locked || (e.button != null && e.button > 0)) return;
+      const sx = e.clientX, sy = e.clientY;
+      let dragging = false, ghost = null, over = null, gw = 0, lastX = sx, lastY = sy, scroller = null;
+      try { el.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ }
+      const zoneAt = (x, y) => {
+        const els = document.elementsFromPoint(x, y);
+        for (const n of els) { const z = n.closest && n.closest('.zone,.slot'); if (z && z._zone && z._zone.scope === chip.scope) return z._zone; }
+        return null;
+      };
+      const hilite = () => {
+        const z = zoneAt(lastX, lastY);
+        if (over && over !== z) over.el.classList.remove('over');
+        over = z; if (z) z.el.classList.add('over');
+      };
+      const move = (ev) => {
+        lastX = ev.clientX; lastY = ev.clientY;
+        if (!dragging && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 8) {
+          dragging = true;
+          clearSel();
+          ghost = el.cloneNode(true);
+          ghost.classList.add('ghost');
+          gw = el.offsetWidth;
+          ghost.style.width = gw + 'px';
+          document.body.appendChild(ghost);
+          el.classList.add('drag-src');
+          // auto-scroll the page while dragging near the top/bottom edge (phones)
+          scroller = setInterval(() => {
+            const vh = window.innerHeight;
+            if (lastY < 90) window.scrollBy(0, -16); else if (lastY > vh - 90) window.scrollBy(0, 16); else return;
+            hilite();
+          }, 16);
+        }
+        if (dragging) {
+          ghost.style.transform = 'translate(' + (ev.clientX - gw / 2) + 'px,' + (ev.clientY - 26) + 'px)';
+          hilite();
+        }
+      };
+      const up = (ev) => {
+        el.removeEventListener('pointermove', move);
+        el.removeEventListener('pointerup', up);
+        el.removeEventListener('pointercancel', up);
+        try { el.releasePointerCapture(e.pointerId); } catch (x) { /* ignore */ }
+        if (scroller) clearInterval(scroller);
+        if (dragging) {
+          ghost.remove(); el.classList.remove('drag-src');
+          if (over) over.el.classList.remove('over');
+          const z = zoneAt(ev.clientX, ev.clientY);
+          if (z) place(chip, z);
+        } else toggleSel(chip);
+      };
+      el.addEventListener('pointermove', move);
+      el.addEventListener('pointerup', up);
+      el.addEventListener('pointercancel', up);
+    });
+    return chip;
+  }
+  function toggleSel(chip) {
+    if (chip.locked) return;
+    const same = dnd.sel === chip;
+    clearSel();
+    if (same) return;
+    dnd.sel = chip; chip.el.classList.add('sel');
+    chip.scope.zones.forEach((z) => z.el.classList.add('tap-ready'));
+  }
+  function mkZone(el, scope, o) {
+    const zone = Object.assign({ el, scope, chips: [], cap: Infinity, key: null, pool: false }, o);
+    el._zone = zone;
+    scope.zones.push(zone);
+    el.addEventListener('click', () => { if (dnd.sel && dnd.sel.scope === scope) { const c = dnd.sel; clearSel(); place(c, zone); } });
+    return zone;
+  }
+  function detach(chip) {
+    if (chip.zone) {
+      chip.zone.chips = chip.zone.chips.filter((c) => c !== chip);
+      if (chip.zone.onChange) chip.zone.onChange();
+    }
+    chip.zone = null;
+  }
+  function moveTo(chip, zone) {
+    detach(chip);
+    zone.el.appendChild(chip.el);
+    zone.chips.push(chip); chip.zone = zone;
+    if (zone.onChange) zone.onChange();
+  }
+  function place(chip, zone) {
+    if (chip.locked) return;
+    if (zone.cap === 1 && zone.chips.length >= 1 && zone.chips[0] !== chip) {
+      const old = zone.chips[0];
+      if (old.locked) return;
+      moveTo(old, zone.scope.pool);
+    }
+    moveTo(chip, zone);
+    chip.el.classList.remove('no');
+    if (scopeChanged) scopeChanged(zone.scope);
+  }
+  let scopeChanged = null;
+
+  /* =====================================================================
+     QUESTION COMPONENTS
+     each returns {el, weight, done, credit}; call c.finish(credit) when done
+     ===================================================================== */
+  function newComp(q) {
+    return { q, weight: MK.weightOf(q), done: false, credit: 0, onDone: null };
+  }
+  function finishComp(c, credit) {
+    c.done = true; c.credit = credit;
+    if (c.onDone) c.onDone();
+  }
+  function fbSet(box, kind, text) {
+    box.className = 'fb ' + (kind || '');
+    box.innerHTML = '';
+    if (!text) return;
+    const ic = { ok: '✓', no: '✗', hint: '💡' }[kind] || '';
+    box.append(h('span', { class: 'ic', text: ic }), R(text, 'div'));
+  }
+  function whyBox(why, open) {
+    if (!why) return null;
+    return h('details', { class: 'why', open: open ? true : null }, h('summary', { text: 'ดูวิธีคิด' }), h('div', { class: 'wb', html: why }));
+  }
+
+  /* ----- generic checker with 2 tries (1.0 first try, 0.5 second try) ----- */
+  function makeChecker(c, ctx, parts, o) {
+    let tries = 0;
+    const fb = o.fb;
+    function finalize(allRight) {
+      const wsum = parts.reduce((s, p) => s + (p.weight || 1), 0);
+      const cr = parts.reduce((s, p) => s + (p.weight || 1) * p.credit, 0) / wsum;
+      ctx.stats.items += parts.length;
+      ctx.stats.first += parts.filter((p) => p.credit === 1).length;
+      o.btn.disabled = true;
+      if (allRight) fbSet(fb, 'ok', tries === 1 ? 'ถูกต้องทั้งหมด! เยี่ยมมาก' : 'ถูกต้องแล้ว (แก้ได้ในครั้งที่ 2 ได้คะแนนครึ่งหนึ่งในข้อที่แก้)');
+      else fbSet(fb, 'no', 'ครบ 2 ครั้งแล้ว — ดูเฉลยและวิธีคิดด้านล่าง ข้อที่ยังไม่ถูกจะไม่ได้คะแนน');
+      if (o.after) o.after();
+      finishComp(c, cr);
+    }
+    function check() {
+      if (c.done) return;
+      const open = parts.filter((p) => !p.done);
+      if (open.some((p) => !p.filled())) { fbSet(fb, 'hint', o.fillMsg || 'ตอบให้ครบทุกช่องก่อนกดตรวจ'); return; }
+      tries++; ctx.stats.tries++;
+      let wrong = 0;
+      open.forEach((p) => {
+        if (p.test()) { p.done = true; p.credit = tries === 1 ? 1 : 0.5; if (p.onRight) p.onRight(tries); }
+        else { wrong++; if (p.onWrong) p.onWrong(tries); }
+      });
+      if (!wrong) return finalize(true);
+      if (tries >= 2) {
+        parts.filter((p) => !p.done).forEach((p) => { p.done = true; p.credit = 0; if (p.reveal) p.reveal(); });
+        return finalize(false);
+      }
+      ctx.stats.hints++;
+      fbSet(fb, 'hint', (o.hint ? o.hint + ' — ' : '') + 'ยังไม่ถูกบางส่วน ลองแก้อีกครั้ง (ตอบถูกในครั้งที่ 2 ได้ครึ่งคะแนนของข้อนั้น)');
+    }
+    o.btn.addEventListener('click', check);
+    return check;
+  }
+
+  /* ----- choice (F1) ----- */
+  function mChoice(q, ctx) {
+    const c = newComp(q);
+    const idx = q.options.map((_, i) => i);
+    const order = q.shuffle === false ? idx : ctx.R.shuffle(idx);
+    c.order = order;
+    const box = h('div', { class: 'qbody' });
+    const fb = h('div', { class: 'fb' });
+    const opts = h('div', { class: 'opts' });
+    const btns = order.map((oi, pos) => {
+      const b = h('button', { type: 'button', class: 'opt', 'data-oi': oi }, h('span', { class: 'k', text: 'กขคงจฉ'[pos] || pos + 1 }), R(q.options[oi], 'span'));
+      b.addEventListener('click', () => {
+        if (c.done) return;
+        const ok = oi === q.answer;
+        btns.forEach((x) => (x.disabled = true));
+        b.classList.add(ok ? 'ok' : 'no');
+        if (!ok) btns[order.indexOf(q.answer)].classList.add('ok');
+        ctx.stats.items++; ctx.stats.tries++;
+        if (ok) { ctx.stats.first++; fbSet(fb, 'ok', q.okMsg || 'ถูกต้อง!'); }
+        else fbSet(fb, 'no', 'ยังไม่ถูก — คำตอบที่ถูกคือข้อที่ไฮไลต์สีเขียว');
+        const w = whyBox(q.why, !ok); if (w) box.appendChild(w);
+        finishComp(c, ok ? 1 : 0);
+      });
+      return b;
+    });
+    box.append(R(q.q, 'div', 'qbody'), opts, fb);
+    btns.forEach((x) => opts.appendChild(x));
+    c.el = box;
+    return c;
+  }
+
+  /* ----- fill (F2) ----- */
+  function ansText(f) {
+    if (f.show) return f.show;
+    if (f.set) return f.set.map((x) => MK.fmt(x)).join(' , ');
+    if (f.text) return [].concat(f.text)[0];
+    const a = [].concat(f.answer)[0];
+    return typeof a === 'number' ? MK.fmt(a) : String(a);
+  }
+  function mFill(q, ctx) {
+    const c = newComp(q);
+    const fields = q.fields || [{ answer: q.answer, set: q.set, text: q.text, tol: q.tol, unit: q.unit, kb: q.kb, ph: q.ph, show: q.show }];
+    const box = h('div', { class: 'qbody' });
+    const fb = h('div', { class: 'fb' });
+    const btn = h('button', { type: 'button', class: 'btn navy sm', text: 'ตรวจคำตอบ' });
+    c.inputs = [];
+    const parts = fields.map((f) => {
+      const a0 = [].concat(f.answer)[0];
+      const intNonNeg = !f.set && !f.text && typeof a0 === 'number' && a0 >= 0 && Math.floor(a0) === a0;
+      const input = h('input', { class: 'num-in', type: 'text', inputmode: f.kb === 'full' ? 'text' : intNonNeg ? 'numeric' : 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', enterkeyhint: 'done', placeholder: f.ph || 'พิมพ์คำตอบ', 'aria-label': f.label || 'คำตอบ' });
+      const rev = h('span', { class: 'rev hide' });
+      const row = h('div', { class: 'fillrow' }, f.label ? R(f.label, 'span', 'flab') : null, input, f.unit ? R(f.unit, 'span', 'unit') : null, rev);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); btn.click(); } });
+      c.inputs.push(input);
+      box.appendChild(row);
+      return {
+        weight: f.weight || 1,
+        filled: () => input.value.trim() !== '',
+        test: () => MK.matchAnswer(input.value, f),
+        onRight: () => { input.classList.remove('no'); input.classList.add('ok'); input.readOnly = true; },
+        onWrong: () => { input.classList.add('no'); },
+        reveal: () => { input.classList.remove('no'); input.readOnly = true; rev.textContent = 'เฉลย: ' + ansText(f); rev.classList.remove('hide'); },
+      };
+    });
+    box.insertBefore(R(q.q, 'div', 'qbody'), box.firstChild);
+    box.append(h('div', { class: 'row' }, btn), fb);
+    makeChecker(c, ctx, parts, { fb, btn, hint: q.hint, after: () => { const w = whyBox(q.why, !parts.every((p) => p.credit === 1)); if (w) box.appendChild(w); } });
+    c.el = box;
+    return c;
+  }
+
+  /* ----- sort / pairs (F3) ----- */
+  function mMatch(q, ctx) {
+    const c = newComp(q);
+    const scope = { zones: [], pool: null };
+    const box = h('div', { class: 'qbody' });
+    const fb = h('div', { class: 'fb' });
+    const btn = h('button', { type: 'button', class: 'btn navy sm', text: 'ตรวจคำตอบ', disabled: true });
+    const poolEl = h('div', { class: 'zone pool' });
+    const pool = mkZone(poolEl, scope, { pool: true });
+    scope.pool = pool;
+    let parts = [];
+    const shuffled = ctx.R.shuffle(q.type === 'sort' ? q.items.map((it) => ({ html: it.html, key: it.bin })) : q.chips);
+    const chips = shuffled.map((it) => mkChip(it.html, it.key, scope));
+    c.chips = chips;
+    const refresh = () => {
+      if (c.done) return;
+      const open = parts.filter((p) => !p.done);
+      btn.disabled = !open.every((p) => p.filled());
+    };
+    scopeChanged = (sc2) => { if (sc2 === scope) refresh(); };
+    pool.onChange = refresh;
+
+    if (q.type === 'sort') {
+      const bins = h('div', { class: 'bins' });
+      const zones = q.bins.map((b) => {
+        const el = h('div', { class: 'zone' }, h('div', { class: 'zt', html: b.label }));
+        bins.appendChild(el);
+        return mkZone(el, scope, { key: b.id });
+      });
+      c.zones = zones;
+      box.append(R(q.q, 'div', 'qbody'), h('div', { class: 'mute', style: 'font-size:.86em', text: 'ลากการ์ดไปวางในกลุ่มที่ถูก หรือแตะการ์ดแล้วแตะกลุ่ม' }), poolEl, bins);
+      chips.forEach((ch) => moveTo(ch, pool));
+      parts = chips.map((ch) => ({
+        weight: 1,
+        filled: () => ch.zone && !ch.zone.pool,
+        test: () => ch.zone && ch.zone.key === ch.key,
+        onRight: () => { ch.locked = true; ch.el.classList.add('locked', 'ok'); },
+        onWrong: () => { ch.el.classList.add('no'); moveTo(ch, pool); },
+        reveal: () => { const z = zones.find((zz) => zz.key === ch.key); moveTo(ch, z); ch.locked = true; ch.el.classList.add('locked', 'rev'); ch.el.classList.remove('no'); },
+      }));
+    } else {
+      const rows = h('div');
+      const slots = q.left.map((l) => {
+        const slotEl = h('div', { class: 'slot' }, h('span', { class: 'ph', text: 'วางที่นี่' }));
+        rows.appendChild(h('div', { class: 'pair-row' }, R(l.html, 'div'), slotEl));
+        return mkZone(slotEl, scope, { key: l.key, cap: 1 });
+      });
+      slots.forEach((s) => { const ph = s.el.querySelector('.ph'); s.onChange = () => { ph.classList.toggle('hide', s.chips.length > 0); refresh(); }; });
+      c.zones = slots;
+      box.append(R(q.q, 'div', 'qbody'), h('div', { class: 'mute', style: 'font-size:.86em', text: 'ลากการ์ดไปวางในช่อง หรือแตะการ์ดแล้วแตะช่อง' }), rows, poolEl);
+      chips.forEach((ch) => moveTo(ch, pool));
+      parts = slots.map((s) => ({
+        weight: 1,
+        filled: () => s.chips.length === 1,
+        test: () => s.chips.length === 1 && s.chips[0].key === s.key,
+        onRight: () => { const ch = s.chips[0]; ch.locked = true; ch.el.classList.add('locked', 'ok'); },
+        onWrong: () => { const ch = s.chips[0]; ch.el.classList.add('no'); moveTo(ch, pool); },
+        reveal: () => {
+          const ch = chips.find((x) => x.key === s.key && !x.locked);
+          if (ch) { moveTo(ch, s); ch.locked = true; ch.el.classList.add('locked', 'rev'); ch.el.classList.remove('no'); }
+        },
+      }));
+    }
+    box.append(h('div', { class: 'row' }, btn), fb);
+    makeChecker(c, ctx, parts, { fb, btn, hint: q.hint, fillMsg: 'วางให้ครบทุกการ์ดก่อนกดตรวจ', after: () => { clearSel(); if (!pool.chips.length) poolEl.classList.add('hide'); const w = whyBox(q.why, !parts.every((p) => p.credit === 1)); if (w) box.appendChild(w); } });
+    c.el = box;
+    return c;
+  }
+
+  /* ----- order (F4) : arrange solution steps + choose a reason for each ----- */
+  function mOrder(q, ctx) {
+    const c = newComp(q);
+    const n = q.steps.length;
+    let ids = ctx.R.shuffle(q.steps.map((_, i) => i));
+    if (ids.every((v, i) => v === i)) ids = ids.slice(1).concat(ids[0]);
+    const sel = {};
+    const box = h('div', { class: 'qbody' });
+    const fb = h('div', { class: 'fb' });
+    const btn = h('button', { type: 'button', class: 'btn navy sm', text: 'ตรวจวิธีทำ' });
+    const list = h('div', { class: 'ord' });
+    const rowEl = {};
+    const selEl = {}, setters = {}, wraps = {};
+    q.steps.forEach((s, i) => {
+      const sl = h('select', { 'aria-label': 'เลือกเหตุผลของขั้นตอน' }, h('option', { value: '', text: '— เลือกเหตุผลของขั้นตอนนี้ —' }), q.reasons.map((r, ri) => h('option', { value: ri, html: r.replace(/\\\(|\\\)/g, '') })));
+      // option text cannot render KaTeX; strip delimiters for readability
+      const cap = h('div', { class: 'mute', style: 'font-size:.82em;margin-top:3px' });
+      const setSel = (v) => { sel[i] = v; sl.value = v == null ? '' : v; cap.innerHTML = v == null ? '' : rich(q.reasons[v]); };
+      sl.addEventListener('change', () => { sel[i] = sl.value === '' ? null : +sl.value; cap.innerHTML = sel[i] == null ? '' : rich(q.reasons[sel[i]]); });
+      selEl[i] = sl; sel[i] = null; setters[i] = setSel; wraps[i] = h('div', {}, sl, cap);
+    });
+    function paint() {
+      list.innerHTML = '';
+      ids.forEach((id, pos) => {
+        const up = h('button', { type: 'button', 'aria-label': 'เลื่อนขึ้น', text: '▲', disabled: pos === 0 || c.done ? true : null });
+        const dn = h('button', { type: 'button', 'aria-label': 'เลื่อนลง', text: '▼', disabled: pos === n - 1 || c.done ? true : null });
+        up.addEventListener('click', () => { [ids[pos - 1], ids[pos]] = [ids[pos], ids[pos - 1]]; paint(); });
+        dn.addEventListener('click', () => { [ids[pos + 1], ids[pos]] = [ids[pos], ids[pos + 1]]; paint(); });
+        const row = h('div', { class: 'ord-row' }, h('div', { class: 'ord-ctl' }, up, dn), h('div', { class: 'ord-main' }, h('div', {}, h('span', { class: 'ord-n', text: (pos + 1) + '.' }), R(q.steps[id].html)), wraps[id]));
+        selEl[id].disabled = c.done;
+        if (row._m) row.classList.add(row._m);
+        rowEl[id] = row;
+        if (lastMarks && lastMarks[id]) row.classList.add(lastMarks[id]);
+        list.appendChild(row);
+      });
+    }
+    let lastMarks = null;
+    const credit = {}; // per part key -> credit
+    let tries = 0;
+    function evalAll() {
+      const res = {};
+      ids.forEach((id, pos) => { res['p' + id] = pos === id; res['r' + id] = sel[id] === q.steps[id].reason; });
+      return res;
+    }
+    btn.addEventListener('click', () => {
+      if (c.done) return;
+      if (Object.values(sel).some((v) => v == null)) { fbSet(fb, 'hint', 'เลือกเหตุผลให้ครบทุกขั้นตอนก่อนกดตรวจ'); return; }
+      tries++; ctx.stats.tries++;
+      const res = evalAll();
+      const keys = Object.keys(res);
+      keys.forEach((k) => { if (credit[k] == null && res[k]) credit[k] = tries === 1 ? 1 : 0.5; });
+      lastMarks = {};
+      q.steps.forEach((_, id) => { lastMarks[id] = res['p' + id] && res['r' + id] ? 'ok' : 'no'; });
+      const all = keys.every((k) => res[k]);
+      const finish = () => {
+        keys.forEach((k) => { if (credit[k] == null) credit[k] = 0; });
+        const cr = keys.reduce((s, k) => s + credit[k], 0) / keys.length;
+        ctx.stats.items += keys.length; ctx.stats.first += keys.filter((k) => credit[k] === 1).length;
+        btn.disabled = true;
+        if (!all) { ids = q.steps.map((_, i) => i); q.steps.forEach((s, i) => setters[i](s.reason)); lastMarks = {}; }
+        paint();
+        if (!all) q.steps.forEach((_, i) => rowEl[i].classList.add('ok'));
+        fbSet(fb, all ? 'ok' : 'no', all ? (tries === 1 ? 'เรียงขั้นตอนและเลือกเหตุผลถูกทั้งหมด!' : 'ถูกแล้วในครั้งที่ 2') : 'ครบ 2 ครั้งแล้ว — แสดงลำดับและเหตุผลที่ถูกต้องให้แล้ว');
+        const w = whyBox(q.why, !all); if (w) box.appendChild(w);
+        finishComp(c, cr);
+      };
+      if (all) { paint(); return finish(); }
+      if (tries >= 2) { paint(); return finish(); }
+      ctx.stats.hints++;
+      paint();
+      fbSet(fb, 'hint', (q.hint ? q.hint + ' — ' : '') + 'ขั้นตอนที่ขึ้นสีแดงยังไม่ถูก (ลำดับหรือเหตุผล) ลองแก้อีกครั้ง');
+    });
+    box.append(R(q.q, 'div', 'qbody'), h('div', { class: 'mute', style: 'font-size:.86em', text: 'ใช้ปุ่ม ▲ ▼ เรียงลำดับขั้นตอน แล้วเลือกเหตุผลของแต่ละขั้น' }), list, h('div', { class: 'row' }, btn), fb);
+    paint();
+    c.dbg = { fix() { ids = q.steps.map((_, i) => i); q.steps.forEach((s, i) => setters[i](s.reason)); paint(); }, wrong() { ids = q.steps.map((_, i) => n - 1 - i); q.steps.forEach((s, i) => setters[i]((s.reason + 1) % q.reasons.length)); paint(); }, check: () => btn.click() };
+    c.el = box;
+    return c;
+  }
+
+  /* ----- find the error (F5) ----- */
+  function mFind(q, ctx) {
+    const c = newComp(q);
+    const box = h('div', { class: 'qbody' });
+    const fb = h('div', { class: 'fb' });
+    const btn = h('button', { type: 'button', class: 'btn navy sm', text: 'ตรวจคำตอบ' });
+    let pick = null;
+    const lines = q.lines.map((html, i) => {
+      const b = h('button', { type: 'button', class: 'ln' }, h('span', { class: 'no-', text: (i + 1) + '.' }), R(html, 'span'));
+      b.addEventListener('click', () => { if (b.disabled) return; pick = i; lines.forEach((x, j) => x.classList.toggle('sel', j === i)); });
+      return b;
+    });
+    const causeSel = h('select', { 'aria-label': 'เลือกสาเหตุ' }, h('option', { value: '', text: '— เลือกสาเหตุที่ผิด —' }), q.causes.map((t, i) => h('option', { value: i, text: t.replace(/\\\(|\\\)/g, '') })));
+    const causeCap = h('div', { class: 'mute', style: 'font-size:.84em;margin-top:3px' });
+    causeSel.addEventListener('change', () => { causeCap.textContent = causeSel.value === '' ? '' : q.causes[+causeSel.value].replace(/\\\(|\\\)/g, ''); });
+    const inp = h('input', { class: 'num-in', type: 'text', inputmode: 'text', autocomplete: 'off', placeholder: 'พิมพ์คำตอบที่ถูกต้อง' });
+    const fld = q.fix;
+    const rev = h('span', { class: 'rev hide' });
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); btn.click(); } });
+    const parts = [
+      { weight: 1, filled: () => pick != null, test: () => pick === q.wrong,
+        onRight: () => { lines.forEach((l) => (l.disabled = true)); lines[q.wrong].classList.remove('sel'); lines[q.wrong].classList.add('ok'); },
+        onWrong: () => { if (pick != null) lines[pick].classList.add('no'); setTimeout(() => lines.forEach((l) => l.classList.remove('no')), 700); },
+        reveal: () => { lines.forEach((l) => { l.disabled = true; l.classList.remove('sel'); }); lines[q.wrong].classList.add('ok'); } },
+      { weight: 1, filled: () => causeSel.value !== '', test: () => +causeSel.value === q.cause,
+        onRight: () => { causeSel.disabled = true; }, onWrong: () => {}, reveal: () => { causeSel.value = q.cause; causeSel.disabled = true; } },
+      { weight: 1, filled: () => inp.value.trim() !== '', test: () => MK.matchAnswer(inp.value, fld),
+        onRight: () => { inp.classList.add('ok'); inp.readOnly = true; }, onWrong: () => inp.classList.add('no'),
+        reveal: () => { inp.readOnly = true; inp.classList.remove('no'); rev.textContent = 'เฉลย: ' + ansText(fld); rev.classList.remove('hide'); } },
+    ];
+    box.append(R(q.q, 'div', 'qbody'), h('div', { class: 'subq' }, h('div', { class: 'sl', text: 'ขั้นที่ 1 · คลิกบรรทัดที่ผิด' }), lines),
+      h('div', { class: 'subq' }, h('div', { class: 'sl', text: 'ขั้นที่ 2 · เลือกสาเหตุ' }), h('div', { class: 'cause' }, causeSel, causeCap)),
+      h('div', { class: 'subq' }, h('div', { class: 'sl', text: 'ขั้นที่ 3 · คำตอบที่ถูกต้อง' }), R(q.fixLabel || '', 'div'), h('div', { class: 'fillrow' }, inp, rev)),
+      h('div', { class: 'row', style: 'margin-top:10px' }, btn), fb);
+    c.dbg = { fix() { lines[q.wrong].click(); causeSel.value = q.cause; inp.value = fld.set ? fld.set.join(', ') : String([].concat(fld.answer)[0]); }, wrong() { lines[(q.wrong + 1) % lines.length].click(); causeSel.value = (q.cause + 1) % q.causes.length; inp.value = '987654'; }, check: () => btn.click() };
+    makeChecker(c, ctx, parts, { fb, btn, hint: q.hint, fillMsg: 'ตอบให้ครบทั้ง 3 ขั้นก่อนกดตรวจ', after: () => { const w = whyBox(q.why, !parts.every((p) => p.credit === 1)); if (w) box.appendChild(w); } });
+    c.el = box;
+    return c;
+  }
+
+  /* ----- group (F7): story + sequential parts ----- */
+  function mGroup(q, ctx) {
+    const c = newComp(q);
+    const box = h('div', { class: 'qbody' });
+    if (q.story) box.appendChild(R(q.story, 'div', 'story'));
+    const comps = q.parts.map((p, i) => {
+      const pc = mountQ(p, ctx);
+      const wrap = h('div', { class: 'subq' + (i > 0 ? ' hide' : '') }, p.label ? h('div', { class: 'sl', text: p.label }) : null, pc.el);
+      box.appendChild(wrap);
+      return { pc, wrap };
+    });
+    c.parts = comps.map((x) => x.pc);
+    comps.forEach((x, i) => {
+      x.pc.onDone = () => {
+        if (i + 1 < comps.length) { comps[i + 1].wrap.classList.remove('hide'); }
+        else {
+          const wsum = comps.reduce((s, y) => s + y.pc.weight, 0);
+          finishComp(c, comps.reduce((s, y) => s + y.pc.weight * y.pc.credit, 0) / wsum);
+        }
+        if (c.onProgress) c.onProgress();
+      };
+    });
+    c.el = box;
+    return c;
+  }
+
+  /* ----- tree builder (F6, HW-01) ----- */
+  function mTree(q, ctx) {
+    const c = newComp(q);
+    const box = h('div', { class: 'qbody' });
+    const fb = h('div', { class: 'fb' });
+    const a = q.step1.items, b = q.step2.items;
+    const forbid = new Set((q.forbid || []).map((p) => p[0] + ',' + p[1]));
+    const validTotal = a.length * b.length - forbid.size;
+    let built1 = new Set(), builtLeaves = new Set(), wrong = 0;
+    const counter = h('span', { class: 'counter' }, 'ผลลัพธ์ที่ต่อได้แล้ว ', h('b', { text: '0' }));
+    const tree = h('div', { class: 'tree' });
+    const root = h('div', { class: 't-node t-root', text: 'เริ่ม' });
+    const branches = h('div', { class: 't-branches' });
+    const leafWraps = {};
+    function update() {
+      counter.querySelector('b').textContent = builtLeaves.size;
+      a.forEach((_, i) => {
+        const live = built1.has(i);
+        b.forEach((__, j) => {
+          const lw = leafWraps[i + ',' + j];
+          lw.wrap.classList.toggle('off', !live);
+          lw.btn.classList.toggle('dead', !live);
+          lw.btn.classList.toggle('live', live && !builtLeaves.has(i + ',' + j));
+        });
+      });
+      a.forEach((_, i) => groupBtns[i].classList.toggle('live', !built1.has(i)));
+      if (builtLeaves.size === validTotal && built1.size === a.length && !c.done) {
+        const credit = Math.max(0, 1 - 0.5 * wrong);
+        ctx.stats.items++; ctx.stats.tries++; if (credit === 1) ctx.stats.first++;
+        fbSet(fb, 'ok', 'ต่อกิ่งครบแล้ว! ผลลัพธ์ทั้งหมดที่เป็นไปได้ = ' + validTotal + ' แบบ' + (wrong ? ' (แตะกิ่งที่ไม่ถูกเงื่อนไข ' + wrong + ' ครั้ง ถูกหักคะแนน)' : ''));
+        finishComp(c, credit);
+      }
+    }
+    const groupBtns = [];
+    a.forEach((lab1, i) => {
+      const nodeBtn = h('button', { type: 'button', class: 't-node ghost-n live', html: lab1, 'aria-label': 'ต่อกิ่ง ' + lab1 });
+      groupBtns.push(nodeBtn);
+      nodeBtn.addEventListener('click', () => {
+        if (built1.has(i)) return;
+        built1.add(i); nodeBtn.classList.remove('ghost-n', 'live'); nodeBtn.classList.add('built', 'pop'); update();
+      });
+      const leaves = h('div', { class: 't-leaves' });
+      b.forEach((lab2, j) => {
+        const lb = h('button', { type: 'button', class: 't-node ghost-n leaf dead', html: lab2, 'aria-label': 'ต่อกิ่ง ' + lab1 + ' แล้ว ' + lab2 });
+        const wrap = h('div', { class: 't-leafwrap off' }, lb);
+        leafWraps[i + ',' + j] = { wrap, btn: lb };
+        lb.addEventListener('click', () => {
+          const k = i + ',' + j;
+          if (builtLeaves.has(k) || !built1.has(i) || c.done) return;
+          if (forbid.has(k)) { wrong++; lb.classList.add('no'); setTimeout(() => lb.classList.remove('no'), 500); fbSet(fb, 'no', 'กิ่งนี้ไม่ได้ — ' + (q.forbidMsg || 'ขัดกับเงื่อนไขของโจทย์')); lb.style.animation = 'shake .35s'; setTimeout(() => (lb.style.animation = ''), 400); return; }
+          builtLeaves.add(k); lb.classList.remove('ghost-n', 'live', 'dead'); lb.classList.add('built', 'pop'); fbSet(fb, '', ''); update();
+        });
+        leaves.appendChild(wrap);
+      });
+      branches.appendChild(h('div', { class: 't-group' }, nodeBtn, leaves));
+    });
+    tree.append(root, branches);
+    box.append(R(q.q, 'div', 'qbody'));
+    if (q.rule) box.append(R(q.rule, 'div', 'rulebox'));
+    box.append(h('div', { class: 'mute', style: 'font-size:.86em;margin-bottom:4px', html: q.how || 'แตะวงที่กะพริบเพื่อต่อกิ่ง: เริ่มจากขั้นที่ 1 แล้วต่อขั้นที่ 2 ให้ครบทุกกิ่ง' }), tree, h('div', { class: 'row' }, counter), fb);
+    update();
+    c.el = box;
+    return c;
+  }
+
+  /* ----- custom (labs, graphs, ...) ----- */
+  function mCustom(q, ctx) {
+    const c = newComp(q);
+    const api = { h, R, rich, fbSet, whyBox, finish: (cr) => finishComp(c, cr), ctx, MK, mkChip, mkZone, place, moveTo, mountQ };
+    c.el = h('div', { class: 'qbody' });
+    q.mount(c.el, api, c);
+    return c;
+  }
+
+  function mountQ(q, ctx) {
+    switch (q.type) {
+      case 'choice': return mChoice(q, ctx);
+      case 'fill': return mFill(q, ctx);
+      case 'sort': case 'pairs': return mMatch(q, ctx);
+      case 'order': return mOrder(q, ctx);
+      case 'find': return mFind(q, ctx);
+      case 'group': return mGroup(q, ctx);
+      case 'tree': return mTree(q, ctx);
+      case 'custom': return mCustom(q, ctx);
+    }
+    throw new Error('unknown question type ' + q.type);
+  }
+  const TYPE_LABEL = { choice: 'เลือกตอบ', fill: 'เติมคำตอบ', sort: 'จับคู่ / ลากวาง', pairs: 'จับคู่ / ลากวาง', order: 'สร้างวิธีทำ', find: 'จับผิดวิธีทำ', group: 'โจทย์สถานการณ์', tree: 'ห้องทดลอง', custom: 'ห้องทดลอง' };
+
+  /* =====================================================================
+     SCREENS
+     ===================================================================== */
+  function setUnit() { document.body.classList.add('u' + HW.unit); }
+  function top(opts) {
+    opts = opts || {};
+    return h('div', { class: 'top noprint', style: 'display:none !important;visibility:hidden !important;height:0 !important;overflow:hidden !important' }, h('div', { class: 'wrap' },
+      h('div', { class: 'brand' }, window.MK_LOGO ? h('img', { src: window.MK_LOGO, alt: '' }) : null, h('span', { text: '{{COURSE_CODE}} · ' + HW.id })),
+      h('div', { class: 'sp' }),
+      opts.timer ? h('span', { class: 'timer', id: 'timer', text: '00:00' }) : null,
+      h('button', { class: 'tbtn', type: 'button', 'aria-label': 'ลดขนาดตัวอักษร', text: 'A−', onclick: () => fontSize(-0.08) }),
+      h('button', { class: 'tbtn', type: 'button', 'aria-label': 'เพิ่มขนาดตัวอักษร', text: 'A+', onclick: () => fontSize(0.08) })));
+  }
+  function fontSize(d) {
+    S.fs = Math.min(1.4, Math.max(0.85, S.fs + d));
+    document.documentElement.style.setProperty('--fs', S.fs);
+  }
+  function mount(...nodes) {
+    stopTimer();
+    app.innerHTML = '';
+    nodes.forEach((n) => n && app.appendChild(n));
+    window.scrollTo(0, 0);
+  }
+  function stopTimer() { if (timerH) { clearInterval(timerH); timerH = null; } }
+  function art() {
+    const ns = 'http://www.w3.org/2000/svg';
+    const wrap = h('div', { class: 'hero-art' });
+    wrap.innerHTML = '<svg viewBox="0 0 380 260" width="100%" height="100%"><circle cx="270" cy="90" r="105" fill="var(--accent)" opacity=".9"/><circle cx="320" cy="60" r="95" fill="#16205B"/><circle cx="238" cy="62" r="64" fill="none" stroke="#16205B" stroke-width="1.5" opacity=".5"/><circle cx="238" cy="62" r="6" fill="#fff" stroke="#16205B" stroke-width="2"/></svg>';
+    return wrap;
+  }
+
+  /* ---------- intro ---------- */
+  function showIntro() {
+    const stu = S.student || loadStudent() || { name: '', cls: '{{DEFAULT_CLASS}}', no: '' };
+    const saved = S.saved.attempts;
+    const hero = h('div', { class: 'hero' }, h('div', { class: 'wrap' },
+      art(),
+      h('div', { class: 'eyebrow' }, window.MK_LOGO ? h('img', { src: window.MK_LOGO, alt: '' }) : null, h('span', { text: '{{COURSE_CODE}} {{COURSE_NAME}} · {{LEVEL}} · ' + HW.unitName }), h('i', { class: 'dash' })),
+      h('h1', {}, h('span', { class: 'num', text: HW.id }), HW.title),
+      h('p', { class: 'sub', html: HW.sub }),
+      h('div', { class: 'metas' },
+        h('span', { class: 'meta', html: 'แบบฝึกชิ้นที่ <b>' + parseInt(HW.id.slice(3), 10) + '</b> จาก {{TOTAL}}' }),
+        h('span', { class: 'meta', html: 'ประมาณ <b>' + HW.size + '</b>' }),
+        h('span', { class: 'meta', html: 'คะแนน <b>' + (HW.P ? 'K ' + sc(HW.K) + ' + P ' + sc(HW.P) + ' = ' + sc(HW.K + HW.P) : 'K ' + sc(HW.K)) + '</b>' }))));
+
+    const nameI = h('input', { type: 'text', id: 'f-name', autocomplete: 'name', placeholder: 'เช่น นายสมชาย ใจดี', value: stu.name, maxlength: 60 });
+    const clsI = h('input', { type: 'text', id: 'f-cls', placeholder: '{{DEFAULT_CLASS}}', value: stu.cls || '{{DEFAULT_CLASS}}', maxlength: 8 });
+    const noI = h('input', { type: 'text', id: 'f-no', inputmode: 'numeric', placeholder: 'เช่น 7', value: stu.no, maxlength: 2 });
+    const err = h('div', { class: 'err', role: 'alert' });
+    const done = saved.length;
+    const startBtn = h('button', { type: 'button', class: 'btn pri', id: 'start', text: done ? 'เริ่มทำครั้งที่ ' + (done + 1) + ' →' : 'เริ่มทำแบบฝึก →' });
+    if (done >= 2) startBtn.classList.add('hide');
+    const go = () => {
+      const name = nameI.value.replace(/\s+/g, ' ').trim();
+      const cls = clsI.value.replace(/\s+/g, '').trim();
+      const no = noI.value.replace(/\D/g, '');
+      if (name.length < 3) { err.textContent = 'กรุณากรอกชื่อ-สกุลให้ครบ'; nameI.focus(); return; }
+      if (!cls) { err.textContent = 'กรุณากรอกชั้น เช่น {{DEFAULT_CLASS}}'; clsI.focus(); return; }
+      if (!no || +no < 1 || +no > 99) { err.textContent = 'กรุณากรอกเลขที่เป็นตัวเลข เช่น 7'; noI.focus(); return; }
+      if (done && S.student && (S.student.name !== name || S.student.cls !== cls || S.student.no !== no)) {
+        err.textContent = 'ชื่อ/ชั้น/เลขที่ ไม่ตรงกับครั้งก่อน กรุณากรอกให้เหมือนเดิมเพื่อให้นับคะแนนรวมกันได้'; return;
+      }
+      err.textContent = '';
+      S.student = { name, cls, no };
+      saveStudent(S.student);
+      startAttempt();
+    };
+    startBtn.addEventListener('click', go);
+    [nameI, clsI, noI].forEach((i) => i.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); }));
+
+    const savedBox = done ? h('div', { class: 'saved' },
+      h('b', { text: 'ผลที่บันทึกไว้ในเครื่องนี้: ' }),
+      saved.map((a, i) => h('span', { class: 'att' + (i === bestIdx() ? ' best' : ''), style: 'margin-right:8px;display:inline-block', text: 'ครั้งที่ ' + a.n + ' = ' + sc(a.K + a.P) + '/' + sc(HW.K + HW.P) })),
+      h('div', { style: 'margin-top:8px' }, h('button', { type: 'button', class: 'btn sm', text: 'ดูหน้าสรุปผล', onclick: () => { S.student = S.student || { name: saved[0].name, cls: saved[0].cls, no: saved[0].no }; showSummary(); } }))) : null;
+    if (done && !S.student) S.student = { name: saved[0].name, cls: saved[0].cls, no: saved[0].no };
+    if (done) { nameI.value = S.student.name; clsI.value = S.student.cls; noI.value = S.student.no; [nameI, clsI, noI].forEach((i) => (i.readOnly = true)); }
+
+    const lvList = h('div', { class: 'lv-list' }, HW.levels.map((L, i) => h('div', { class: 'lv-item' }, h('span', { class: 'n', text: i + 1 }), h('div', {}, h('b', { html: L.title }), ' ', h('span', { class: 'tag ' + L.kind.toLowerCase(), text: L.kind + ' ' + sc(L.points) }), h('div', { class: 'mute', html: L.desc })))));
+
+    mount(top(), hero, h('main', {}, h('div', { class: 'wrap' },
+      savedBox,
+      h('div', { class: 'card' }, h('h2', {}, 'ก่อนเริ่ม ', h('span', { class: 'tag', text: 'กรอกข้อมูลนักเรียน' })),
+        h('div', { class: 'formgrid' },
+          h('div', { class: 'field f-name' }, h('label', { for: 'f-name', text: 'ชื่อ-สกุล' }), nameI),
+          h('div', { class: 'field' }, h('label', { for: 'f-cls', text: 'ชั้น' }), clsI),
+          h('div', { class: 'field' }, h('label', { for: 'f-no', text: 'เลขที่' }), noI)),
+        err, h('div', { class: 'row', style: 'margin-top:8px' }, startBtn, done >= 2 ? h('span', { class: 'mute', text: 'ทำครบ 2 ครั้งแล้ว — ระบบนับครั้งที่ได้คะแนนดีกว่า' }) : null)),
+      h('div', { class: 'card' }, h('h2', { text: 'ด่านในแบบฝึกนี้' }), lvList),
+      h('div', { class: 'card tint' }, h('h2', { text: 'กติกาสั้น ๆ' }), h('ul', { class: 'rules' },
+        h('li', { html: 'ทำได้ <b>2 ครั้ง</b> ระบบนับ<b>ครั้งที่ได้คะแนนดีกว่า</b> แต่ละครั้งตัวเลขในโจทย์จะเปลี่ยน' }),
+        h('li', { html: 'ตอบถูกตั้งแต่ครั้งแรกได้ <b>เต็ม</b> · ผิดแล้วมีคำใบ้ ตอบถูกในครั้งที่ 2 ได้ <b>ครึ่งหนึ่ง</b> · ผิดสองครั้งดูเฉลยได้ (ไม่ได้คะแนนข้อนั้น)' }),
+        h('li', { html: 'ทำให้จบทุกด่านแล้วจะมี<b>หน้าสรุปผล</b> แสดงชื่อ ชั้น เลขที่ และคะแนน — <b>แคปหน้าจอส่งครู</b> ตามที่ครูกำหนด' }),
+        h('li', { html: 'อย่ารีเฟรชหรือปิดหน้านี้ระหว่างทำ ความคืบหน้าของครั้งนั้นจะหาย' }))),
+      HW.reviewFile ? h('div', { class: 'row' }, h('a', { class: 'btn sm', href: (window.REVIEW_BASE || '') + HW.reviewFile, target: '_blank', rel: 'noopener', text: '📖 เปิดสื่อการสอนหัวข้อนี้' })) : null)),
+      h('div', { class: 'footer' }, 'MathKraft · ครูนิพนธ์ ไวยวรณ์ · โรงเรียนนวลนรดิศวิทยาคม รัชมังคลาภิเษก'));
+  }
+  function bestIdx() {
+    const a = S.saved.attempts;
+    if (!a.length) return -1;
+    let b = 0;
+    a.forEach((x, i) => { if (x.K + x.P > a[b].K + a[b].P + 1e-9) b = i; });
+    return b;
+  }
+
+  /* ---------- play ---------- */
+  function startAttempt() {
+    const n = S.saved.attempts.length + 1;
+    const seed = ((Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0) || 12345;
+    const run = {
+      n, seed, t0: Date.now(), cur: 0, stats: { items: 0, first: 0, hints: 0, tries: 0 },
+      levels: HW.levels.map((L, i) => {
+        const R0 = MK.rng(seed + (i + 1) * 7919);
+        const ctx = null;
+        return { def: L, R: R0, comps: null, done: false, el: null };
+      }),
+    };
+    run.ctx = { stats: run.stats };
+    S.run = run;
+    window.MK.debug = { run };
+    window.onbeforeunload = (e) => { if (S.run) { e.preventDefault(); e.returnValue = ''; return ''; } };
+    showLevel(0);
+  }
+  function pillsBar() {
+    const run = S.run;
+    return h('div', { class: 'pills noprint' }, h('div', { class: 'wrap' }, run.levels.map((l, i) => {
+      const cls = 'pill' + (i === run.cur ? ' on' : '') + (l.done ? ' done' : '') + (i > run.cur && !l.done ? ' lock' : '');
+      return h('div', { class: cls }, h('span', { class: 'n', text: l.done ? '✓' : i + 1 }), h('span', { html: l.def.short || ('ด่าน ' + (i + 1)) }));
+    })));
+  }
+  function showLevel(i) {
+    const run = S.run;
+    run.cur = i;
+    const L = run.levels[i];
+    const def = L.def;
+    if (!L.comps) {
+      const qs = def.build(L.R);
+      L.qs = qs;
+      const ctx = { stats: run.stats, R: MK.rng(run.seed + (i + 1) * 104729) };
+      L.comps = qs.map((q) => mountQ(q, ctx));
+    }
+    const nextBtn = h('button', { type: 'button', class: 'btn pri', disabled: true, text: i + 1 < run.levels.length ? 'ไปด่านถัดไป →' : 'ดูผลสรุป ✓' });
+    const vault = h('div', { class: 'vault hide' });
+    const hintEl = h('span', { class: 'hint', text: 'ทำให้ครบทุกข้อในด่านนี้ก่อน จึงไปต่อได้' });
+    const prog = h('span', { class: 'qstat' });
+    function refresh() {
+      const nd = L.comps.filter((c) => c.done).length;
+      const all = nd === L.comps.length;
+      L.done = all;
+      if (all && def.gate) {
+        const fr = levelFrac(L);
+        const pass = fr >= def.gate.min;
+        const canRetry = !pass && !L.tries;
+        L.done = pass || !canRetry;
+        vault.className = 'vault' + (L.done ? ' open' : '');
+        vault.innerHTML = '';
+        if (L.done) {
+          const code = MK.codeOf(HW.id + '|' + i + '|' + run.seed).slice(0, 4);
+          vault.append(h('span', { class: 'lk', text: '🔓' }), h('div', {}, pass ? 'ผ่านด่านแล้ว! ได้รหัสปลดล็อก ' : 'ครบ 2 รอบแล้ว ระบบเปิดด่านถัดไปให้ (คะแนนด่านนี้นับรอบที่ดีกว่า) · รหัส ', h('code', { text: code })));
+        } else {
+          vault.append(h('span', { class: 'lk', text: '🔒' }), h('div', {}, 'ด่านนี้ยังไม่ปลดล็อก — ต้องทำถูกอย่างน้อย ' + Math.round(def.gate.min * 100) + '% (ตอนนี้ ' + Math.round(fr * 100) + '%) ลองด่านนี้ใหม่ด้วยโจทย์ชุดใหม่ได้ 1 ครั้ง ระบบนับรอบที่ได้คะแนนดีกว่า '),
+            h('button', { type: 'button', class: 'btn sm', text: '🔁 ลองด่านนี้ใหม่', onclick: () => { L.bestFrac = Math.max(L.bestFrac || 0, fr); if (def.split) { const sf = splitFrac(L); L.bestSplit = { K: Math.max((L.bestSplit || {}).K || 0, sf.K), P: Math.max((L.bestSplit || {}).P || 0, sf.P) }; } L.tries = (L.tries || 0) + 1; L.R = MK.rng(run.seed + (i + 1) * 7919 + 31 * L.tries); L.comps = null; showLevel(i); } }));
+        }
+      } else vault.classList.add('hide');
+      nextBtn.disabled = !L.done;
+      hintEl.textContent = L.done ? 'ครบแล้ว! กดไปต่อได้เลย' : all ? 'ด่านนี้ยังไม่ปลดล็อก' : 'ทำแล้ว ' + nd + ' / ' + L.comps.length + ' ข้อ — ทำให้ครบก่อนจึงไปต่อได้';
+      document.querySelectorAll('.pills').forEach((p) => p.replaceWith(pillsBar()));
+    }
+    nextBtn.addEventListener('click', () => {
+      if (i + 1 < run.levels.length) showLevel(i + 1); else finishAttempt();
+    });
+    const head = h('div', { class: 'lv-head' },
+      h('h2', {}, h('span', { html: def.title }), h('span', { class: 'tag ' + (def.split ? '' : def.kind.toLowerCase()), text: def.split ? 'K ' + sc(def.split.K) + ' + P ' + sc(def.split.P) + ' คะแนน' : def.kind + ' ' + sc(def.points) + ' คะแนน' })),
+      def.intro ? R(def.intro, 'p') : null);
+    const cards = L.comps.map((c, k) => {
+      const done = () => card.classList.toggle('done', c.done);
+      const stat = h('span', { class: 'qstat', text: '' });
+      const card = h('div', { class: 'qcard' }, h('div', { class: 'qh' }, h('span', { class: 'qno', text: 'ข้อ ' + (k + 1) }), h('span', { class: 'qtype', text: TYPE_LABEL[c.q.type] || '' }), stat), c.el);
+      const prev = c.onDone;
+      c.onDone = () => { if (prev) prev(); stat.textContent = '✓ เสร็จแล้ว'; done(); refresh(); };
+      if (c.done) { stat.textContent = '✓ เสร็จแล้ว'; done(); }
+      return card;
+    });
+    mount(top({ timer: true }), pillsBar(), h('main', {}, h('div', { class: 'wrap' }, head, def.ask ? h('div', { class: 'ask' }, h('b', { text: 'โจทย์ชวนคิด' }), R(def.ask, 'div')) : null, cards, vault, h('div', { class: 'nav' }, hintEl, nextBtn))));
+    refresh();
+    const tick = () => { const t = $('#timer'); if (t) t.textContent = mmss((Date.now() - run.t0) / 1000); };
+    tick(); timerH = setInterval(tick, 1000);
+  }
+
+  function levelFrac(l) {
+    const wsum = l.comps.reduce((s, c) => s + c.weight, 0);
+    return l.comps.reduce((s, c) => s + c.weight * c.credit, 0) / wsum;
+  }
+  function flatComps(cs) { const o = []; cs.forEach((c) => { if (c.parts) o.push(...flatComps(c.parts)); else o.push(c); }); return o; }
+  // per-kind fraction for levels that mix K and P parts (def.split = {K, P}); parts carry q.sk = 'K' | 'P'
+  function splitFrac(l) {
+    const res = { K: 0, P: 0 };
+    ['K', 'P'].forEach((k) => {
+      const cs = flatComps(l.comps).filter((c) => c.q.sk === k);
+      const w = cs.reduce((a, c) => a + c.weight, 0);
+      res[k] = w ? cs.reduce((a, c) => a + c.weight * c.credit, 0) / w : 0;
+    });
+    return res;
+  }
+  function finishAttempt() {
+    const run = S.run;
+    const secs = Math.round((Date.now() - run.t0) / 1000);
+    let K = 0, P = 0;
+    const levels = run.levels.map((l) => {
+      if (l.def.split) {
+        const sf = splitFrac(l), bs = l.bestSplit || {};
+        const fK = Math.max(bs.K || 0, sf.K), fP = Math.max(bs.P || 0, sf.P);
+        const eK = l.def.split.K * fK, eP = l.def.split.P * fP;
+        K += eK; P += eP;
+        const tot = l.def.split.K + l.def.split.P;
+        return { id: l.def.short || '', title: l.def.title, kind: 'KP', points: tot, earned: MK.round(eK + eP, 4), earnedK: MK.round(eK, 4), earnedP: MK.round(eP, 4), pct: Math.round(((eK + eP) / tot) * 100), skill: l.def.skill || '', review: l.def.review || '' };
+      }
+      const frac = Math.max(l.bestFrac || 0, levelFrac(l));
+      const earned = l.def.points * frac;
+      if (l.def.kind === 'K') K += earned; else P += earned;
+      return { id: l.def.short || '', title: l.def.title, kind: l.def.kind, points: l.def.points, earned: MK.round(earned, 4), pct: Math.round(frac * 100), skill: l.def.skill || '', review: l.def.review || '' };
+    });
+    K = MK.round(K, 2); P = MK.round(P, 2);
+    const a = { n: run.n, seed: run.seed, name: S.student.name, cls: S.student.cls, no: S.student.no, at: Date.now(), secs, K, P, levels, stats: run.stats };
+    a.code = MK.codeOf([HW.id, a.name, a.cls, a.no, K.toFixed(2), P.toFixed(2), a.n].join('|'));
+    S.saved.attempts.push(a);
+    S.saved.student = S.student;
+    save(S.saved);
+    S.run = null;
+    window.onbeforeunload = null;
+    showSummary(S.saved.attempts.length - 1, true);
+  }
+
+  /* ---------- summary ---------- */
+  function gradeOf(p) {
+    if (p >= 85) return { g: 'g4', t: 'ยอดเยี่ยม', msg: 'เข้าใจเนื้อหาส่วนนี้ได้ดีมาก ไปต่อบทถัดไปได้อย่างมั่นใจ' };
+    if (p >= 70) return { g: 'g3', t: 'ดี', msg: 'เข้าใจหลักการสำคัญแล้ว ทบทวนจุดที่พลาดอีกนิดจะเต็มขึ้น' };
+    if (p >= 50) return { g: 'g2', t: 'พอใช้', msg: 'เริ่มจับหลักได้แล้ว แต่ยังมีจุดที่ควรทบทวนซ้ำ' };
+    return { g: 'g1', t: 'ควรทบทวน', msg: 'ลองกลับไปอ่านสื่อการสอนหัวข้อนี้อีกรอบ แล้วทำแบบฝึกครั้งต่อไปอีกครั้ง' };
+  }
+  function showSummary(idx, fresh) {
+    const atts = S.saved.attempts;
+    if (idx == null) idx = bestIdx();
+    const a = atts[idx];
+    const best = bestIdx();
+    const counted = atts[best];
+    const maxK = HW.K, maxP = HW.P, max = maxK + maxP;
+    const tot = a.K + a.P;
+    const pct = Math.round((tot / max) * 100);
+    const gr = gradeOf(pct);
+    const when = new Date(a.at);
+    const dstr = when.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + when.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    const C = 2 * Math.PI * 54;
+    const ring = h('div', { class: 'ring' });
+    ring.innerHTML = '<svg viewBox="0 0 128 128"><circle cx="64" cy="64" r="54" fill="none" stroke="rgba(22,32,91,.12)" stroke-width="14"/><circle cx="64" cy="64" r="54" fill="none" stroke="var(--accent)" stroke-width="14" stroke-linecap="round" stroke-dasharray="' + (C * pct / 100).toFixed(1) + ' ' + C.toFixed(1) + '"/></svg><div class="tx"><div><b>' + sc(tot) + '</b><br><span>จาก ' + sc(max) + ' คะแนน</span></div></div>';
+
+    const strengths = a.levels.filter((l) => l.pct >= 80);
+    const weak = a.levels.filter((l) => l.pct < 80);
+    const evl = h('div', { class: 'card evl' }, h('h2', {}, 'ประเมินสรุปแบบฝึกนี้ ', h('span', { class: 'grade ' + gr.g, text: gr.t })),
+      h('p', { text: gr.msg + ' (ได้ ' + pct + '% ของคะแนนแบบฝึก)' }),
+      h('p', { class: 'mute', html: 'ข้อย่อยที่ถูกตั้งแต่ครั้งแรก <b>' + a.stats.first + ' / ' + a.stats.items + '</b> · ใช้คำใบ้ <b>' + a.stats.hints + '</b> ครั้ง · ใช้เวลา <b>' + mmss(a.secs) + '</b> นาที' }),
+      strengths.length ? h('div', {}, h('b', { text: '✓ ทำได้ดี' }), h('ul', {}, strengths.map((l) => h('li', { html: l.skill || l.title })))) : null,
+      weak.length ? h('div', {}, h('b', { text: '↻ ควรทบทวน / ฝึกเพิ่ม' }), h('ul', {}, weak.map((l) => h('li', { html: (l.skill || l.title) + (l.review ? ' <span class="mute">→ ' + l.review + '</span>' : '') })))) : h('p', { html: '<b>ทำได้ดีครบทุกด่าน</b> ยังไม่มีหัวข้อที่ต้องทบทวนเพิ่ม' }));
+
+    const rows = a.levels.map((l) => h('tr', {},
+      h('td', { html: l.title }), h('td', {}, h('span', { class: 'tag ' + (l.kind.length === 1 ? l.kind.toLowerCase() : ''), text: l.kind === 'KP' ? 'K+P' : l.kind })),
+      h('td', {}, h('div', { class: 'barx' }, h('i', { style: 'width:' + l.pct + '%' }))),
+      h('td', { class: 'num', text: sc(l.earned) + ' / ' + sc(l.points) })));
+
+    const attBox = h('div', { class: 'attempts' }, atts.map((x, i) => h('span', { class: 'att' + (i === best ? ' best' : ''), text: 'ครั้งที่ ' + x.n + ': ' + sc(x.K + x.P) + ' / ' + sc(max) + (i === best ? '  ← นับคะแนนครั้งนี้' : '') })));
+
+    const copyTxt = () => [
+      HW.id + ' ' + HW.title + ' ({{COURSE_CODE}} {{LEVEL}})',
+      'ชื่อ: ' + a.name + ' · ชั้น: ' + a.cls + ' · เลขที่: ' + a.no,
+      'ครั้งที่ ' + a.n + ' · K ' + sc(a.K) + '/' + sc(maxK) + (maxP ? ' · P ' + sc(a.P) + '/' + sc(maxP) : '') + ' · รวม ' + sc(tot) + '/' + sc(max),
+      'รหัสยืนยัน: ' + a.code,
+    ].join('\n');
+    const copyBtn = h('button', { type: 'button', class: 'btn sm', text: '📋 คัดลอกผลสรุป', onclick: () => {
+      const t = copyTxt();
+      const ok = () => toast('คัดลอกแล้ว');
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, () => fallbackCopy(t, ok));
+      else fallbackCopy(t, ok);
+    } });
+    const canRetry = atts.length < 2;
+
+    const kpIsViewing = idx !== best;
+    mount(top(), h('main', {}, h('div', { class: 'wrap' },
+      fresh ? h('div', { class: 'ask noprint' }, h('b', { text: 'เสร็จแล้ว!' }), h('div', { text: 'นี่คือหน้าสรุปผลของครั้งที่ ' + a.n + ' — แคปหน้าจอทั้งหน้านี้ส่งครูได้เลย' })) : null,
+      h('div', { class: 'card' }, h('div', { class: 'sum-head' },
+        h('div', {}, h('h2', { html: HW.id + ' · ' + HW.title }),
+          h('div', { class: 'stu' }, h('b', { text: 'ชื่อ-สกุล' }), h('span', { class: 'v', id: 's-name', text: a.name }), h('b', { text: 'ชั้น' }), h('span', { class: 'v', id: 's-cls', text: a.cls }), h('b', { text: 'เลขที่' }), h('span', { class: 'v', id: 's-no', text: a.no }), h('b', { text: 'ทำเมื่อ' }), h('span', { text: dstr }), h('b', { text: 'ครั้งที่' }), h('span', { text: a.n + (kpIsViewing ? '' : ' (นับคะแนน)') }))),
+        ring),
+        h('div', { class: 'kp' },
+          h('div', { class: 'c' }, h('small', { text: 'K ด้านความรู้' }), h('b', { id: 's-k' }, sc(a.K), h('i', { text: ' / ' + sc(maxK) }))),
+          maxP ? h('div', { class: 'c' }, h('small', { text: 'P ด้านทักษะกระบวนการ' }), h('b', { id: 's-p' }, sc(a.P), h('i', { text: ' / ' + sc(maxP) }))) : null,
+          h('div', { class: 'c' }, h('small', { text: 'รวม' }), h('b', { id: 's-t' }, sc(tot), h('i', { text: ' / ' + sc(max) })))),
+        kpIsViewing ? h('p', { class: 'mute', html: 'หมายเหตุ: ครั้งนี้ไม่ใช่ครั้งที่นับคะแนน (นับครั้งที่ ' + counted.n + ' = ' + sc(counted.K + counted.P) + ')' }) : null),
+      evl,
+      h('div', { class: 'card' }, h('h2', { text: 'คะแนนรายด่าน' }), h('table', { class: 'lvtab' }, h('thead', {}, h('tr', {}, h('th', { text: 'ด่าน' }), h('th', { text: 'ประเภท' }), h('th', { text: 'ทำได้' }), h('th', { text: 'คะแนน' }))), h('tbody', {}, rows))),
+      h('div', { class: 'card' }, h('h2', { text: 'ผลทั้งหมดและรหัสยืนยัน' }), attBox,
+        h('p', {}, 'รหัสยืนยันของครั้งนี้ ', h('span', { class: 'code', id: 's-code', text: a.code })),
+        h('div', { class: 'shot noprint', html: '📸 <b>ส่งงาน:</b> แคปหน้าจอหน้านี้ให้เห็น ชื่อ ชั้น เลขที่ คะแนน และรหัสยืนยัน แล้วส่งใน Google Classroom ตามที่ครูกำหนด' }),
+        h('div', { class: 'row noprint', style: 'margin-top:14px' },
+          canRetry ? h('button', { type: 'button', class: 'btn pri', text: 'ทำครั้งที่ 2 (ตัวเลขชุดใหม่) →', onclick: () => { showIntroForRetry(); } }) : null,
+          atts.length > 1 && idx !== best ? h('button', { type: 'button', class: 'btn sm', text: 'ดูครั้งที่นับคะแนน', onclick: () => showSummary(best) }) : null,
+          atts.length > 1 && idx === best ? h('button', { type: 'button', class: 'btn sm', text: 'ดูครั้งอื่น', onclick: () => showSummary(atts.findIndex((_, i) => i !== best)) }) : null,
+          copyBtn,
+          h('button', { type: 'button', class: 'btn sm', text: '🖨️ พิมพ์ / บันทึก PDF', onclick: () => window.print() }),
+          HW.reviewFile ? h('a', { class: 'btn sm', href: (window.REVIEW_BASE || '') + HW.reviewFile, target: '_blank', rel: 'noopener', text: '📖 ทบทวนที่สื่อการสอน' }) : null))
+    )), h('div', { class: 'footer' }, 'MathKraft · {{COURSE_CODE}} {{COURSE_NAME}} · {{LEVEL}} · ' + HW.id));
+  }
+  function showIntroForRetry() { startAttempt(); }
+  function fallbackCopy(t, ok) {
+    const ta = h('textarea', { style: 'position:fixed;left:-9999px' });
+    ta.value = t; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); ok(); } catch (e) { toast('คัดลอกไม่ได้ — แคปหน้าจอแทนได้เลย'); }
+    ta.remove();
+  }
+
+  /* ---------- boot ---------- */
+  function boot() {
+    setUnit();
+    const sv = loadSaved();
+    if (sv && sv.attempts) S.saved = sv;
+    if (S.saved.student) S.student = S.saved.student;
+    window.MK.S = S;
+    window.MK.ui = { h, R, rich, mountQ, mkChip };
+    showIntro();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
